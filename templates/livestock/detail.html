@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ species.name }} - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'livestock:list' %}">Livestock</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'livestock:category_detail' species.category.pk %}">{{ species.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ species.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-lg-5">
+            {% if species.image %}
+            <img src="{{ species.image.url }}" alt="{{ species.name }}" class="img-fluid rounded shadow-sm w-100" style="max-height:380px;object-fit:cover">
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height:300px">
+                <i class="bi bi-egg-fried fs-1 text-muted"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-7">
+            <span class="badge bg-success mb-2">{{ species.category.name }}</span>
+            <h2 class="fw-bold mb-3">{{ species.name }}</h2>
+
+            {% if species.description %}
+            <p class="text-muted mb-4">{{ species.description }}</p>
+            {% endif %}
+
+            <div class="row g-3 mb-4">
+                {% if species.current_count %}
+                <div class="col-6">
+                    <div class="card border-0 bg-success bg-opacity-10 p-3 text-center">
+                        <div class="fs-3 fw-bold text-success">{{ species.current_count }}</div>
+                        <small class="text-muted">Current Count</small>
+                    </div>
+                </div>
+                {% endif %}
+                {% if species.average_weight %}
+                <div class="col-6">
+                    <div class="card border-0 bg-primary bg-opacity-10 p-3 text-center">
+                        <div class="fs-3 fw-bold text-primary">{{ species.average_weight }}kg</div>
+                        <small class="text-muted">Avg. Weight</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if species.health_status %}
+            <div class="alert alert-success small">
+                <i class="bi bi-heart-pulse me-2"></i>
+                <strong>Health Status:</strong> {{ species.health_status }}
+            </div>
+            {% endif %}
+
+            <a href="{% url 'livestock:list' %}" class="btn btn-outline-success">
+                <i class="bi bi-arrow-left me-2"></i>Back to Livestock
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

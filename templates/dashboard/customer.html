@@ -1,0 +1,105 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block nav_customer_home %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-person-circle me-2 text-success"></i>Welcome, {{ request.user.first_name|default:request.user.username }}</h5>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="bi bi-bag-check fs-4"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ orders.count }}</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-clock-history fs-4"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ orders|length }}</div>
+                <div class="stat-label">Recent Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-heart fs-4"></i>
+            </div>
+            <div>
+                <div class="stat-value"><a href="{% url 'dashboard:customer_wishlist' %}" class="text-decoration-none text-dark">Wishlist</a></div>
+                <div class="stat-label">Saved Items</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="{% url 'store:product_list' %}" class="btn btn-success">
+        <i class="bi bi-shop me-2"></i>Browse Shop
+    </a>
+    <a href="{% url 'store:cart' %}" class="btn btn-outline-success">
+        <i class="bi bi-cart me-2"></i>View Cart
+    </a>
+    <a href="{% url 'dashboard:customer_orders' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-bag me-2"></i>All Orders
+    </a>
+    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-person me-2"></i>Edit Profile
+    </a>
+</div>
+
+<!-- Recent Orders -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom px-4 py-3">
+        <h6 class="fw-semibold mb-0">Recent Orders</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table dashboard-table mb-0">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>#{{ order.pk }}</strong></td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>₦{{ order.total_amount|floatformat:2 }}</td>
+                    <td>
+                        <span class="status-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'store:order_detail' order.pk %}" class="btn btn-sm btn-outline-success">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-bag-x fs-2 d-block mb-2"></i>
+                        No orders yet. <a href="{% url 'store:product_list' %}">Start shopping</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

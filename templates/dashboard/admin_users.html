@@ -1,0 +1,80 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Users{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-people me-2 text-success"></i>All Users</h5>
+    <a href="{% url 'dashboard:admin_add_staff' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-person-plus me-1"></i>Add Staff Member
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table dashboard-table admin-users-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Phone</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td data-label="#">{{ forloop.counter }}</td>
+                    <td data-label="Username"><strong>{{ user.username }}</strong></td>
+                    <td data-label="Full Name">{{ user.get_full_name|default:"-" }}</td>
+                    <td data-label="Email">{{ user.email|default:"-" }}</td>
+                    <td data-label="Role">
+                        <span class="badge {% if user.is_superuser or user.role == 'admin' %}bg-danger{% elif user.role == 'staff' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                            {% if user.is_superuser %}Admin{% else %}{{ user.get_role_display }}{% endif %}
+                        </span>
+                        {% if user.is_superuser %}<span class="badge bg-dark ms-1">Superuser</span>{% endif %}
+                    </td>
+                    <td data-label="Phone">{{ user.phone|default:"-" }}</td>
+                    <td data-label="Joined">{{ user.date_joined|date:"d M Y" }}</td>
+                    <td data-label="Status">
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Change Role" class="user-actions-cell">
+                        <form method="post" action="{% url 'dashboard:admin_update_user_role' user.pk %}" class="user-role-form">
+                            {% csrf_token %}
+                            <select name="role" class="form-select form-select-sm user-role-select" {% if user.is_superuser %}disabled{% endif %}>
+                                {% for role_value in role_choices %}
+                                    {% if user.is_superuser and role_value == 'admin' %}
+                                        <option value="{{ role_value }}" selected>Admin</option>
+                                    {% elif not user.is_superuser and user.role == role_value %}
+                                        <option value="{{ role_value }}" selected>{{ role_value|capfirst }}</option>
+                                    {% else %}
+                                        <option value="{{ role_value }}">{{ role_value|capfirst }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if not user.is_superuser %}
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+                            {% else %}
+                                <span class="text-muted small">Locked</span>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,385 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Daily Farm Log{% endblock %}
+{% block nav_daily_log %}active{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="section-header">
+    <div>
+        <h5 class="mb-0"><i class="bi bi-journal-text me-2 text-success"></i>Daily Farm Log</h5>
+        <p class="text-muted small mb-0 mt-1">Record what your farm consumes and produces every day.</p>
+    </div>
+    <span class="fm-date-badge"><i class="bi bi-calendar3 me-2"></i>{{ today|date:"l, j F Y" }}</span>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Explanation banner -->
+<div class="fm-explain-banner mb-4">
+    <div class="fm-explain-icon"><i class="bi bi-lightbulb-fill"></i></div>
+    <div>
+        <strong>What is the Daily Farm Log?</strong>
+        Every day, you record two things: <strong>(1) how much feed was consumed</strong> and
+        <strong>(2) what was produced or harvested</strong>.
+        These entries build your 30-day history, auto-calculate your egg analytics,
+        and feed directly into the Reports page so you always know how your farm is performing.
+    </div>
+</div>
+
+<!-- 30-day egg summary stats -->
+<div class="fm-stats-strip mb-4">
+    <div class="fm-stat-item">
+        <div class="fm-stat-icon" style="background:linear-gradient(135deg,#fef9c3,#fde68a);">
+            <i class="bi bi-egg text-warning fs-5"></i>
+        </div>
+        <div>
+            <div class="fm-stat-value">{{ egg_metrics.collected }}</div>
+            <div class="fm-stat-label">Eggs Collected<br><span class="text-muted">(last 30 days)</span></div>
+        </div>
+    </div>
+    <div class="fm-stat-divider"></div>
+    <div class="fm-stat-item">
+        <div class="fm-stat-icon" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);">
+            <i class="bi bi-check-circle text-success fs-5"></i>
+        </div>
+        <div>
+            <div class="fm-stat-value text-success">{{ egg_metrics.saleable }}</div>
+            <div class="fm-stat-label">Saleable Eggs<br><span class="text-muted">collected − damaged</span></div>
+        </div>
+    </div>
+    <div class="fm-stat-divider"></div>
+    <div class="fm-stat-item">
+        <div class="fm-stat-icon" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
+            <i class="bi bi-x-circle text-danger fs-5"></i>
+        </div>
+        <div>
+            <div class="fm-stat-value text-danger">{{ egg_metrics.damaged }}</div>
+            <div class="fm-stat-label">Damaged / Cracked<br><span class="text-muted">discarded eggs</span></div>
+        </div>
+    </div>
+    <div class="fm-stat-divider"></div>
+    <div class="fm-stat-item">
+        <div class="fm-stat-icon" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);">
+            <i class="bi bi-grid text-primary fs-5"></i>
+        </div>
+        <div>
+            <div class="fm-stat-value text-primary">{{ egg_metrics.trays }}</div>
+            <div class="fm-stat-label">Estimated Trays<br><span class="text-muted">saleable ÷ 30</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Entry forms -->
+<div class="row g-3 mb-4">
+
+    <!-- Feed consumption -->
+    <div class="col-lg-6 col-xl-6">
+        <div class="fm-log-form-card h-100">
+            <div class="fm-log-form-header fm-log-header-feed">
+                <i class="bi bi-basket me-2"></i>Log Feed Consumption
+            </div>
+            <div class="fm-log-form-body">
+                <div class="fm-explain-banner fm-explain-warning mb-3" style="padding:.5rem 0.75rem;font-size:.8rem;">
+                    <div class="fm-explain-icon" style="font-size:0.95rem;"><i class="bi bi-info-circle-fill"></i></div>
+                    <div><strong>Bags of feed</strong> used today. This builds your consumption history.</div>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="feed">
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ feed_form.date.id_for_label }}"><i class="bi bi-calendar3 text-warning me-1"></i>Date <span class="text-danger">*</span></label>
+                        {{ feed_form.date }}
+                        {% if feed_form.date.errors %}<div class="invalid-feedback d-block">{{ feed_form.date.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ feed_form.species.id_for_label }}"><i class="bi bi-grid-3x3-gap text-success me-1"></i>Animal <span class="text-danger">*</span></label>
+                        {{ feed_form.species }}
+                        {% if feed_form.species.errors %}<div class="invalid-feedback d-block">{{ feed_form.species.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ feed_form.feed_type.id_for_label }}"><i class="bi bi-bag text-primary me-1"></i>Feed Type <span class="text-danger">*</span></label>
+                        {{ feed_form.feed_type }}
+                        {% if feed_form.feed_type.errors %}<div class="invalid-feedback d-block">{{ feed_form.feed_type.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ feed_form.bags_consumed.id_for_label }}"><i class="bi bi-boxes text-danger me-1"></i>Bags <span class="text-danger">*</span></label>
+                        {{ feed_form.bags_consumed }}
+                        {% if feed_form.bags_consumed.errors %}<div class="invalid-feedback d-block">{{ feed_form.bags_consumed.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ feed_form.notes.id_for_label }}"><i class="bi bi-sticky text-secondary me-1"></i>Notes</label>
+                        {{ feed_form.notes }}
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 fw-semibold">
+                        <i class="bi bi-plus-circle me-2"></i>Save Feed Entry
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Production / harvest -->
+    <div class="col-lg-6 col-xl-6">
+        <div class="fm-log-form-card h-100">
+            <div class="fm-log-form-header fm-log-header-production">
+                <i class="bi bi-egg me-2"></i>Log Production / Harvest
+            </div>
+            <div class="fm-log-form-body">
+                <div class="fm-explain-banner mb-3" style="padding:.5rem 0.75rem;font-size:.8rem;">
+                    <div class="fm-explain-icon" style="font-size:0.95rem;"><i class="bi bi-info-circle-fill"></i></div>
+                    <div><strong>Produced or harvested</strong> today. For eggs, system auto-calculates saleable quantity.</div>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="production">
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ production_form.date.id_for_label }}"><i class="bi bi-calendar3 text-warning me-1"></i>Date <span class="text-danger">*</span></label>
+                        {{ production_form.date }}
+                        {% if production_form.date.errors %}<div class="invalid-feedback d-block">{{ production_form.date.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ production_form.species.id_for_label }}"><i class="bi bi-grid-3x3-gap text-success me-1"></i>Animal <span class="text-danger">*</span></label>
+                        {{ production_form.species }}
+                        {% if production_form.species.errors %}<div class="invalid-feedback d-block">{{ production_form.species.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="fm-field-group">
+                        <label class="fw-semibold small mb-1" for="{{ production_form.product.id_for_label }}"><i class="bi bi-box text-primary me-1"></i>Product <span class="text-danger">*</span></label>
+                        {{ production_form.product }}
+                        {% if production_form.product.errors %}<div class="invalid-feedback d-block">{{ production_form.product.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-xs-7 col-sm-7">
+                            <div class="fm-field-group mb-0">
+                                <label class="fw-semibold small mb-1" for="{{ production_form.quantity.id_for_label }}">Qty <span class="text-danger">*</span></label>
+                                {{ production_form.quantity }}
+                                {% if production_form.quantity.errors %}<div class="invalid-feedback d-block">{{ production_form.quantity.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-xs-5 col-sm-5">
+                            <div class="fm-field-group mb-0">
+                                <label class="fw-semibold small mb-1" for="{{ production_form.unit.id_for_label }}">Unit <span class="text-danger">*</span></label>
+                                {{ production_form.unit }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Egg-specific fields with callout -->
+                    <div class="fm-egg-callout mt-3">
+                        <div class="fm-egg-callout-header"><i class="bi bi-egg-fill me-2"></i>Egg Tracking Fields <span class="badge bg-success ms-1 small">Layer Hens Only</span></div>
+                        <div class="fm-egg-callout-body">
+                            <p class="text-muted small mb-2">
+                                Only fill in if logging <strong>egg production</strong>. System subtracts damaged from total for <strong>saleable eggs</strong>.
+                            </p>
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <label class="fw-semibold small mb-1" for="{{ production_form.egg_count.id_for_label }}">Total Collected</label>
+                                    {{ production_form.egg_count }}
+                                    {% if production_form.egg_count.errors %}<div class="invalid-feedback d-block">{{ production_form.egg_count.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="fw-semibold small mb-1" for="{{ production_form.damaged_count.id_for_label }}">Damaged</label>
+                                    {{ production_form.damaged_count }}
+                                    {% if production_form.damaged_count.errors %}<div class="invalid-feedback d-block">{{ production_form.damaged_count.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <!-- Live egg calc preview -->
+                            <div class="fm-egg-calc-preview mt-2" id="eggCalcPreview" style="display:none;">
+                                <span><i class="bi bi-calculator me-1"></i>Saleable:</span>
+                                <strong id="eggSaleable" class="text-success ms-1">0</strong>
+                                <span class="text-muted mx-2">|</span>
+                                <span>Trays:</span>
+                                <strong id="eggTrays" class="text-primary ms-1">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fm-field-group mt-2">
+                        <label class="fw-semibold small mb-1" for="{{ production_form.notes.id_for_label }}"><i class="bi bi-sticky text-secondary me-1"></i>Notes</label>
+                        {{ production_form.notes }}
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-semibold">
+                        <i class="bi bi-plus-circle me-2"></i>Save Production Entry
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History tables -->
+<div class="row g-3">
+
+    <!-- Feed log history -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="fm-table-header">
+                <div>
+                    <span class="fw-bold"><i class="bi bi-basket text-warning me-2"></i>Feed Consumption History</span>
+                    <span class="text-muted small ms-2">— what was actually fed each day</span>
+                </div>
+                <span class="badge bg-warning text-dark">Last 60</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table dashboard-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Species</th>
+                                <th>Feed Type</th>
+                                <th class="text-end">Bags</th>
+                                <th>Logged By</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in feed_logs %}
+                            <tr>
+                                <td class="text-nowrap small fw-semibold">{{ log.date|date:"d M Y" }}</td>
+                                <td><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
+                                <td class="small text-muted">{{ log.feed_type }}</td>
+                                <td class="text-end fw-bold">{{ log.bags_consumed }}</td>
+                                <td class="small text-muted">
+                                    {% if log.recorded_by %}{{ log.recorded_by.get_full_name|default:log.recorded_by.username }}{% else %}—{% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'dashboard:admin_delete_feed_log' log.pk %}"
+                                       class="btn btn-outline-danger btn-sm py-0 px-2"
+                                       onclick="return confirm('Delete this feed entry?')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-basket fs-2 d-block mb-2 opacity-25"></i>
+                                    No feed entries yet.<br>
+                                    <span class="small">Use the form above to log today's feed consumption.</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Production log history -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="fm-table-header">
+                <div>
+                    <span class="fw-bold"><i class="bi bi-egg text-success me-2"></i>Production / Harvest History</span>
+                    <span class="text-muted small ms-2">— what was collected or harvested</span>
+                </div>
+                <span class="badge bg-success">Last 60</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table dashboard-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Species</th>
+                                <th>Product</th>
+                                <th class="text-end">Collected</th>
+                                <th class="text-end text-danger">Damaged</th>
+                                <th class="text-end text-success">Saleable</th>
+                                <th class="text-end">Qty</th>
+                                <th>Unit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in production_logs %}
+                            <tr>
+                                <td class="text-nowrap small fw-semibold">{{ log.date|date:"d M Y" }}</td>
+                                <td><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
+                                <td class="small">{{ log.product }}</td>
+                                <td class="text-end small">{{ log.egg_count|default:'—' }}</td>
+                                <td class="text-end small text-danger">{% if log.egg_count is not None %}{{ log.damaged_count }}{% else %}—{% endif %}</td>
+                                <td class="text-end small fw-bold text-success">{% if log.egg_count is not None %}{{ log.saleable_quantity }}{% else %}—{% endif %}</td>
+                                <td class="text-end fw-bold">{{ log.quantity }}</td>
+                                <td class="small text-muted">{{ log.get_unit_display }}</td>
+                                <td>
+                                    <a href="{% url 'dashboard:admin_delete_production_log' log.pk %}"
+                                       class="btn btn-outline-danger btn-sm py-0 px-2"
+                                       onclick="return confirm('Delete this production entry?')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i class="bi bi-egg fs-2 d-block mb-2 opacity-25"></i>
+                                    No production entries yet.<br>
+                                    <span class="small">Use the form above to record today's harvest.</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const eggInput     = document.getElementById('{{ production_form.egg_count.id_for_label }}');
+    const damagedInput = document.getElementById('{{ production_form.damaged_count.id_for_label }}');
+    const preview      = document.getElementById('eggCalcPreview');
+    const saleableEl   = document.getElementById('eggSaleable');
+    const traysEl      = document.getElementById('eggTrays');
+
+    function recalc() {
+        const eggs    = parseInt(eggInput.value)    || 0;
+        const damaged = parseInt(damagedInput.value) || 0;
+        if (eggs > 0) {
+            const saleable = Math.max(eggs - damaged, 0);
+            const trays    = (saleable / 30).toFixed(1);
+            saleableEl.textContent = saleable;
+            traysEl.textContent    = trays;
+            preview.style.display  = 'flex';
+        } else {
+            preview.style.display  = 'none';
+        }
+    }
+
+    if (eggInput && damagedInput) {
+        eggInput.addEventListener('input', recalc);
+        damagedInput.addEventListener('input', recalc);
+        recalc();
+    }
+}());
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+{# 
+    Reusable form section card.
+    Usage: {% include 'includes/form_section.html' with title="Section Title" form=form submit_label="Save" %}
+#}
+<div class="card border-0 shadow-sm mb-4">
+    {% if title %}
+    <div class="card-header bg-white border-bottom py-3 px-4">
+        <h6 class="fw-semibold mb-0 text-success">
+            {% if icon %}<i class="bi bi-{{ icon }} me-2"></i>{% endif %}
+            {{ title }}
+        </h6>
+    </div>
+    {% endif %}
+    <div class="card-body p-4">
+        {% if description %}
+        <p class="text-muted small mb-3">{{ description }}</p>
+        {% endif %}
+        {{ slot }}
+    </div>
+</div>

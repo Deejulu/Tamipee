@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Feed Log - {{ species.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="fw-bold">Feed Log &mdash; {{ species.name }}</h2>
+        <p class="text-muted">Track feeding schedules and records for this species.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom px-4 py-3">
+                    <h5 class="fw-semibold mb-0">Add Feed Entry</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100 mt-2">
+                            <i class="bi bi-plus-circle me-2"></i>Add Entry
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom px-4 py-3">
+                    <h5 class="fw-semibold mb-0">Feed History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr><th>Date</th><th>Feed Type</th><th>Quantity</th><th>Notes</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in schedules %}
+                            <tr>
+                                <td>{{ schedule.date|date:"d M Y" }}</td>
+                                <td>{{ schedule.feed_type }}</td>
+                                <td>{{ schedule.quantity }}</td>
+                                <td class="text-muted small">{{ schedule.notes|default:'-' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-4">No feed records yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

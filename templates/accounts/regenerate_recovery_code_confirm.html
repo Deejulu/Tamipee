@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Regenerate Recovery Code - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-check text-warning fs-1"></i>
+                    <h3 class="fw-bold mt-2">Regenerate Recovery Code</h3>
+                    <p class="text-muted">Create a new recovery code for your account</p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        <li>Regenerating your recovery code will <strong>invalidate the old one</strong></li>
+                        <li>You will need the new code to reset your password</li>
+                        <li>Save the new code in a secure location</li>
+                        <li>This action requires your password for security</li>
+                    </ul>
+                </div>
+
+                <form method="post" action="{% url 'accounts:regenerate_recovery_code' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-2"></i>Confirm Your Password
+                        </label>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password" 
+                            class="form-control form-control-lg" 
+                            placeholder="Enter your current password" 
+                            required 
+                            autofocus
+                        >
+                        <small class="form-text text-muted">
+                            <i class="bi bi-info-circle me-1"></i>Required for security verification
+                        </small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg fw-semibold">
+                            <i class="bi bi-arrow-repeat me-2"></i>Regenerate Recovery Code
+                        </button>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="bg-light p-3 rounded">
+                    <h6 class="fw-bold mb-2">
+                        <i class="bi bi-question-circle text-info me-2"></i>Why regenerate?
+                    </h6>
+                    <p class="small mb-0">
+                        You should regenerate your recovery code if:
+                    </p>
+                    <ul class="small mb-0 mt-2">
+                        <li>You've lost your original recovery code</li>
+                        <li>You suspect someone else knows your code</li>
+                        <li>You want to update it for security reasons</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="fw-bold mb-0">{{ content.section_key|title|replace:'_,' ' ' }}</h6>
+            {% if content.is_active %}
+            <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>
+            {% endif %}
+        </div>
+        {% if content.content %}
+        <p class="text-muted small mb-0">{{ content.content|truncatewords:20 }}</p>
+        {% endif %}
+    </div>
+</div>

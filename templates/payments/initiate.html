@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Pay for Order #{{ order.pk }} - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <i class="bi bi-shield-lock-fill text-success fs-1 mb-3"></i>
+                    <h3 class="fw-bold mb-1">Complete Your Payment</h3>
+                    <p class="text-muted mb-4">Order #{{ order.pk }} &mdash; &#8358;{{ order.total_amount }}</p>
+
+                    <div class="card bg-light border-0 rounded-3 p-3 mb-4 text-start">
+                        <h6 class="fw-semibold mb-2">Order Summary</h6>
+                        {% for item in order.items.all %}
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
+                            <span>&#8358;{{ item.subtotal }}</span>
+                        </div>
+                        {% endfor %}
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span class="text-success">&#8358;{{ order.total_amount }}</span>
+                        </div>
+                    </div>
+
+                    <button id="payBtn" class="btn btn-success btn-lg w-100 mb-3">
+                        <i class="bi bi-credit-card me-2"></i>Pay &#8358;{{ order.total_amount }} with Paystack
+                    </button>
+                    <a href="{% url 'store:cart' %}" class="btn btn-outline-secondary btn-sm w-100">Cancel</a>
+
+                    <p class="text-muted small mt-3">
+                        <i class="bi bi-lock me-1"></i>Secured by Paystack. We accept cards, bank transfers, and USSD.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+document.getElementById('payBtn').addEventListener('click', function() {
+    var handler = PaystackPop.setup({
+        key: '{{ paystack_public_key }}',
+        email: '{{ request.user.email }}',
+        amount: {{ order.total_amount }} * 100,  // Paystack accepts kobo
+        currency: 'NGN',
+        ref: '{{ payment.reference }}',
+        callback: function(response) {
+            window.location.href = '{% url "payments:verify" %}?reference=' + response.reference;
+        },
+        onClose: function() {
+            alert('Payment window closed. Your order is saved. You can continue payment anytime.');
+        }
+    });
+    handler.openIframe();
+});
+</script>
+{% endblock %}

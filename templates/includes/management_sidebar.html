@@ -1,0 +1,37 @@
+<!-- Management Sidebar partial -->
+<!-- Include inside dashboard base sidebar area if needed for sub-navigation -->
+<div class="list-group list-group-flush">
+    <a href="{% url 'dashboard:admin_manage_products' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_products %}{% endblock %}">
+        <i class="bi bi-box"></i> Products
+    </a>
+    <a href="{% url 'dashboard:admin_manage_categories' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_categories %}{% endblock %}">
+        <i class="bi bi-tag"></i> Categories
+    </a>
+    <a href="{% url 'dashboard:admin_manage_hero' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_hero %}{% endblock %}">
+        <i class="bi bi-image"></i> Hero
+    </a>
+    <a href="{% url 'dashboard:admin_manage_banners' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_banners %}{% endblock %}">
+        <i class="bi bi-card-image"></i> Banners
+    </a>
+    <a href="{% url 'dashboard:admin_manage_testimonials' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_testimonials %}{% endblock %}">
+        <i class="bi bi-chat-quote"></i> Testimonials
+    </a>
+    <a href="{% url 'dashboard:admin_manage_faqs' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_faqs %}{% endblock %}">
+        <i class="bi bi-question-circle"></i> FAQs
+    </a>
+    <a href="{% url 'dashboard:admin_manage_contact_info' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_contact %}{% endblock %}">
+        <i class="bi bi-telephone"></i> Contact Info
+    </a>
+    <a href="{% url 'dashboard:admin_manage_pages' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_pages %}{% endblock %}">
+        <i class="bi bi-file-text"></i> Pages
+    </a>
+    <a href="{% url 'dashboard:admin_manage_promotions' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_promotions %}{% endblock %}">
+        <i class="bi bi-percent"></i> Promotions
+    </a>
+    <a href="{% url 'dashboard:admin_manage_newsletter' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_newsletter %}{% endblock %}">
+        <i class="bi bi-envelope"></i> Newsletter
+    </a>
+    <a href="{% url 'dashboard:admin_manage_announcements' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2 {% block sidebar_announcements %}{% endblock %}">
+        <i class="bi bi-megaphone"></i> Announcements
+    </a>
+</div>

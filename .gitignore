@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# Django
+*.sqlite3
+*.db
+db.sqlite3
+media/
+staticfiles/
+*.log
+local_settings.py
+
+# Environment variables (CRITICAL - never commit these!)
+.env
+.env.*
+!.env.example
+
+# Sensitive data
+*.pem
+*.key
+*.cert
+*.crt
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Backup files
+*.bak
+*.backup
+*.tmp

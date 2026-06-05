@@ -1,0 +1,55 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Livestock{% endblock %}
+{% block nav_staff_livestock %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-grid-3x3-gap me-2 text-success"></i>Livestock Overview</h5>
+    <a href="{% url 'dashboard:admin_manage_livestock_form' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Add Species
+    </a>
+</div>
+
+{% for category in categories %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-success bg-opacity-10 py-2 px-3">
+        <h6 class="fw-bold mb-0 text-success">{{ category.name }} <span class="badge bg-success ms-1">{{ category.species.count }}</span></h6>
+    </div>
+    <div class="card-body p-0">
+        {% if category.species.all %}
+        <table class="table dashboard-table mb-0">
+            <thead>
+                <tr><th>Species</th><th>Breed</th><th>Stock</th><th>Feed Schedules</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for species in category.species.all %}
+                <tr>
+                    <td><strong>{{ species.name }}</strong></td>
+                    <td>{{ species.breed|default:"-" }}</td>
+                    <td>
+                        <span class="{% if species.current_stock < 10 %}text-danger fw-bold{% else %}text-success{% endif %}">
+                            {{ species.current_stock }}
+                        </span>
+                    </td>
+                    <td>{{ species.feed_schedules.count }} schedule(s)</td>
+                    <td class="d-flex gap-1">
+                        <a href="{% url 'livestock:feed_log' species.pk %}" class="btn btn-outline-success btn-sm" title="Feed Log"><i class="bi bi-basket"></i></a>
+                        <a href="{% url 'livestock:growth_log' species.pk %}" class="btn btn-outline-warning btn-sm" title="Growth Log"><i class="bi bi-lightning-charge"></i></a>
+                        <a href="{% url 'livestock:seasonal' species.pk %}" class="btn btn-outline-info btn-sm" title="Seasonal"><i class="bi bi-cloud-sun"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center py-3 small">No species in this category yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2"></i>
+    No livestock categories found.
+</div>
+{% endfor %}
+{% endblock %}

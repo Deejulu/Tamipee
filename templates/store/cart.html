@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Cart - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold mb-4"><i class="bi bi-cart me-2"></i>Your Cart</h2>
+
+    {% if cart.items.all %}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart.items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:50px;height:50px;object-fit:cover;border-radius:8px">
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ item.product.name }}</strong>
+                                            <br><small class="text-muted">{{ item.product.get_unit_display }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>&#8358;{{ item.product.price }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'store:update_cart_item' item.pk %}" class="d-flex align-items-center gap-2 flex-wrap">
+                                        {% csrf_token %}
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" class="form-control form-control-sm" style="width:88px">
+                                        <button type="submit" class="btn btn-outline-success btn-sm">Update</button>
+                                    </form>
+                                </td>
+                                <td class="fw-semibold text-success">&#8358;{{ item.subtotal }}</td>
+                                <td>
+                                    <a href="{% url 'store:remove_from_cart' item.pk %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <a href="{% url 'store:product_list' %}" class="btn btn-outline-success mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+            </a>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Items ({{ cart.item_count }})</span>
+                        <span>&#8358;{{ cart.total }}</span>
+                    </div>
+                    <p class="small text-muted mb-3">Update tray, crate, or unit quantities here before checkout.</p>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Delivery</span>
+                        <span class="text-success">Calculated at checkout</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                        <span>Total</span>
+                        <span class="text-success">&#8358;{{ cart.total }}</span>
+                    </div>
+                    <a href="{% url 'store:checkout' %}" class="btn btn-success w-100 btn-lg">
+                        <i class="bi bi-lock me-2"></i>Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-cart-x fs-1 d-block mb-3"></i>
+        <h4>Your cart is empty</h4>
+        <p>Browse our products and add something fresh!</p>
+        <a href="{% url 'store:product_list' %}" class="btn btn-success btn-lg mt-2">
+            <i class="bi bi-shop me-2"></i>Shop Now
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

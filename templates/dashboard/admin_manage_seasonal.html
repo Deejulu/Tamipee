@@ -1,0 +1,160 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Seasonal Variations{% endblock %}
+{% block nav_seasonal %}active{% endblock %}
+
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h5 class="mb-0"><i class="bi bi-cloud-sun me-2 text-info"></i>Seasonal Variation Tracking</h5>
+        <p class="text-muted small mb-0 mt-1">Plan ahead for how each season affects your farm's output.</p>
+    </div>
+</div>
+
+<!-- Explanation banner -->
+<div class="fm-explain-banner fm-explain-info mb-4">
+    <div class="fm-explain-icon"><i class="bi bi-cloud-sun-fill"></i></div>
+    <div>
+        <strong>What is Seasonal Variation?</strong>
+        Animals don't produce the same amount all year. In the harmattan, heat stress can drop egg production.
+        In the rainy season, catfish may grow slower. This section lets you record those patterns so you
+        can <strong>plan your stock, feed, and pricing ahead of time</strong> — rather than being caught off guard.
+        The percentage change you enter is used to generate <strong>alerts and recommendations</strong> on your analytics dashboard.
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Left: Add form -->
+    <div class="col-lg-5">
+        <div class="fm-form-card">
+            <div class="fm-form-card-header">
+                <i class="bi bi-plus-circle me-2"></i>Record a Seasonal Pattern
+            </div>
+            <form method="post" class="pt-3">
+                {% csrf_token %}
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-success-subtle"><i class="bi bi-grid-3x3-gap text-success"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.species.id_for_label }}">Which animal? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">The species affected by this seasonal pattern.</p>
+                        </div>
+                    </div>
+                    {{ form.species }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-info-subtle"><i class="bi bi-cloud-sun text-info"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.season.id_for_label }}">Season Name <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">e.g. Harmattan, Rainy Season, Hot Dry Season</p>
+                        </div>
+                    </div>
+                    {{ form.season }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-warning-subtle"><i class="bi bi-exclamation-triangle text-warning"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.production_impact.id_for_label }}">What happens during this season? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">Describe how production is affected.</p>
+                        </div>
+                    </div>
+                    {{ form.production_impact }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-success-subtle"><i class="bi bi-patch-check text-success"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.recommended_action.id_for_label }}">What should you do? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">The action to take when this season starts.</p>
+                        </div>
+                    </div>
+                    {{ form.recommended_action }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-danger-subtle"><i class="bi bi-percent text-danger"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.expected_yield_change_percent.id_for_label }}">Expected Yield Change (%)</label>
+                            <p class="text-muted small mb-0">Use a <strong>negative number</strong> for drops (e.g. -15), positive for gains (e.g. +8).</p>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        {{ form.expected_yield_change_percent }}
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-info px-4 fw-semibold mt-2 w-100 text-white">
+                    <i class="bi bi-plus-circle me-2"></i>Save Seasonal Pattern
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right: Saved records -->
+    <div class="col-lg-7">
+
+        {% if variations %}
+        <div class="d-flex flex-column gap-3">
+            {% for v in variations %}
+            <div class="fm-seasonal-card">
+                <div class="fm-seasonal-top">
+                    <div>
+                        <span class="fm-seasonal-species">{{ v.species.name }}</span>
+                        <span class="fm-seasonal-season ms-2"><i class="bi bi-cloud-sun me-1"></i>{{ v.season }}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge fs-6 {% if v.expected_yield_change_percent >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if v.expected_yield_change_percent > 0 %}+{% endif %}{{ v.expected_yield_change_percent }}%
+                        </span>
+                        <a href="{% url 'dashboard:admin_delete_seasonal' v.pk %}"
+                           class="btn btn-outline-danger btn-sm"
+                           onclick="return confirm('Delete this seasonal variation?')"
+                           title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="fm-seasonal-body">
+                    <div class="fm-seasonal-row">
+                        <span class="fm-seasonal-label"><i class="bi bi-exclamation-triangle text-warning me-1"></i>Impact</span>
+                        <span>{{ v.production_impact }}</span>
+                    </div>
+                    <div class="fm-seasonal-row">
+                        <span class="fm-seasonal-label"><i class="bi bi-patch-check text-success me-1"></i>Action</span>
+                        <span class="text-success">{{ v.recommended_action }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="fm-empty-state">
+            <i class="bi bi-cloud-sun fs-1 d-block mb-3 opacity-25"></i>
+            <h6>No seasonal patterns recorded yet</h6>
+            <p class="text-muted small">Use the form on the left to record how each season affects your animals.<br>
+            The system will use these records to generate alerts and recommendations on your analytics dashboard.</p>
+        </div>
+        {% endif %}
+
+        <!-- Tips -->
+        <div class="fm-tips-card mt-4">
+            <div class="fm-tips-header"><i class="bi bi-patch-check-fill me-2 text-info"></i>Why this matters</div>
+            <ul class="fm-tips-list">
+                <li>If you know production drops <strong>15% in harmattan</strong>, you can stock more ahead of time.</li>
+                <li>If you know <strong>catfish grow slower in cold weather</strong>, you can adjust your harvest date and pricing.</li>
+                <li>Recommended actions remind your staff exactly what to do when a season starts — no guessing.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Feed Schedules{% endblock %}
+{% block nav_staff_feed %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-basket me-2 text-success"></i>Feed Schedules</h5>
+    <a href="{% url 'dashboard:admin_manage_feed_form' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Add Schedule
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table dashboard-table table-hover mb-0">
+            <thead>
+                <tr><th>Species</th><th>Feed Type</th><th>Daily Qty (kg)</th><th>Cost/kg</th><th>Daily Cost</th><th>Feeding Times</th><th>Season</th></tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td><strong>{{ schedule.species.name }}</strong></td>
+                    <td>{{ schedule.feed_type }}</td>
+                    <td>{{ schedule.daily_quantity_kg }}</td>
+                    <td>&#8358;{{ schedule.cost_per_kg }}</td>
+                    <td class="text-success fw-semibold">&#8358;{{ schedule.daily_cost|floatformat:2 }}</td>
+                    <td>{{ schedule.feeding_times }}</td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ schedule.get_season_display }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-basket fs-2 d-block mb-2"></i>
+                        No feed schedules yet.
+                        <a href="{% url 'dashboard:admin_manage_feed_form' %}">Add one.</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

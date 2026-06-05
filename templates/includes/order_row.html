@@ -1,0 +1,18 @@
+<tr>
+    <td><strong>#{{ order.pk }}</strong></td>
+    <td>{{ order.created_at|date:"d M Y" }}</td>
+    <td>{{ order.items.count }}</td>
+    <td class="fw-semibold">&#8358;{{ order.total_amount|floatformat:2 }}</td>
+    <td>
+        <span class="badge
+            {% if order.status == 'delivered' %}bg-success
+            {% elif order.status == 'cancelled' %}bg-danger
+            {% elif order.status == 'pending' %}bg-warning text-dark
+            {% else %}bg-primary{% endif %}">
+            {{ order.get_status_display }}
+        </span>
+    </td>
+    <td>
+        <a href="{% url 'store:order_detail' order.pk %}" class="btn btn-outline-success btn-sm">Details</a>
+    </td>
+</tr>

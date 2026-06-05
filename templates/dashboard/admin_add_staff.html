@@ -1,0 +1,35 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Add Staff{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-person-plus me-2 text-success"></i>Add Staff Member</h5>
+    <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Users
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="form-card">
+            <p class="text-muted small mb-4">
+                <i class="bi bi-info-circle me-1"></i>
+                Staff members can view livestock data, manage feed schedules, and process orders.
+                They cannot access admin reports or user management.
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle me-2"></i>Create Staff Account
+                    </button>
+                    <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

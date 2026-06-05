@@ -1,0 +1,83 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block nav_staff_home %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-person-badge me-2 text-success"></i>Staff Dashboard</h5>
+    <span class="text-muted small">Welcome, {{ request.user.first_name|default:request.user.username }}</span>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-grid-3x3-gap fs-3"></i></div>
+            <div>
+                <div class="stat-value">{{ livestock_categories.count }}</div>
+                <div class="stat-label">Livestock Categories</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-bag-check fs-3"></i></div>
+            <div>
+                <div class="stat-value">{{ recent_orders.count }}</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-basket fs-3"></i></div>
+            <div>
+                <div class="stat-value"><a href="{% url 'dashboard:staff_feed' %}" class="text-decoration-none text-dark">Feed</a></div>
+                <div class="stat-label">Today's Schedules</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <a href="{% url 'dashboard:staff_livestock' %}" class="btn btn-success"><i class="bi bi-grid-3x3-gap me-2"></i>Livestock</a>
+    <a href="{% url 'dashboard:staff_feed' %}" class="btn btn-outline-success"><i class="bi bi-basket me-2"></i>Feed Schedules</a>
+    <a href="{% url 'dashboard:staff_orders' %}" class="btn btn-outline-primary"><i class="bi bi-bag me-2"></i>Orders</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom px-4 py-3">
+        <h6 class="fw-semibold mb-0">Pending Orders to Process</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table dashboard-table mb-0">
+            <thead>
+                <tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Date</th><th>Update</th></tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td><strong>#{{ order.pk }}</strong></td>
+                    <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                    <td>&#8358;{{ order.total_amount|floatformat:2 }}</td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'dashboard:update_order_status' order.pk %}" class="d-flex gap-1">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" style="width:auto">
+                                <option value="confirmed">Confirmed</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No pending orders. All clear!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

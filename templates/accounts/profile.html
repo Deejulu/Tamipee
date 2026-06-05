@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}My Profile - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom px-4 py-3">
+                    <h4 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-success"></i>My Profile</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <div class="row gx-4">
+                        <div class="col-md-5 mb-4 mb-md-0">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="text-center mb-4">
+                                    {% if request.user.profile_picture %}
+                                    <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width:100px;height:100px;object-fit:cover">
+                                    {% else %}
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:96px;height:96px;font-size:2rem">
+                                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <h5 class="text-center fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                                <p class="text-center text-muted mb-4">{{ request.user.role|capfirst }} member since {{ request.user.created_at|date:'F j, Y' }}</p>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between">
+                                        <span class="text-muted">Username</span>
+                                        <span>{{ request.user.username }}</span>
+                                    </li>
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between">
+                                        <span class="text-muted">Email</span>
+                                        <span>{{ request.user.email }}</span>
+                                    </li>
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between">
+                                        <span class="text-muted">Phone</span>
+                                        <span>{{ request.user.phone|default:'Not provided yet' }}</span>
+                                    </li>
+                                    <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-start">
+                                        <span class="text-muted">Address</span>
+                                        <span class="text-end" style="max-width:55%">{{ request.user.address|linebreaksbr|default:'Not provided yet' }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                {{ form|crispy }}
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="bi bi-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

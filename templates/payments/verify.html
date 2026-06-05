@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Verifying Payment - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 text-center">
+            <div class="card border-0 shadow-sm p-5">
+                <div class="spinner-border text-success mb-4" style="width:3rem;height:3rem" role="status">
+                    <span class="visually-hidden">Verifying...</span>
+                </div>
+                <h4 class="fw-bold">Verifying Your Payment</h4>
+                <p class="text-muted">Please wait while we confirm your payment with Paystack.</p>
+                <p class="text-muted small">Reference: <code>{{ payment.reference }}</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-redirect after a moment — webhook handles the actual update
+setTimeout(function() {
+    window.location.href = '{% url "payments:success" %}';
+}, 3000);
+</script>
+{% endblock %}

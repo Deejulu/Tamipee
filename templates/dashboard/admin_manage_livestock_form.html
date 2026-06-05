@@ -1,0 +1,40 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{% if species %}Edit{% else %}Add{% endif %} Livestock Species{% endblock %}
+{% block nav_livestock %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-grid-3x3-gap me-2 text-success"></i>{% if species %}Edit{% else %}Add New{% endif %} Livestock Species</h5>
+    <a href="{% url 'dashboard:admin_livestock' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Livestock
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-card">
+            <p class="text-muted small mb-4">
+                <i class="bi bi-info-circle me-1"></i>
+                Fill in the details below. Once saved, this species will appear in your livestock analytics, 
+                and its products can be linked to the store automatically.
+            </p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle me-2"></i>Save Species
+                    </button>
+                    <a href="{% url 'dashboard:admin_livestock' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        <div class="alert alert-success mt-3 small">
+            <i class="bi bi-magic me-2"></i>
+            <strong>After saving:</strong> This species will appear in your livestock analytics dashboard with stock charts, 
+            feed cost tracking, and seasonal variation analysis — all generated automatically.
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}About - Tamipee Integrated Farms{% endblock %}
+
+{% block content %}
+<!-- About Hero -->
+<div class="bg-success text-white py-5 text-center">
+    <div class="container">
+        <h1 class="fw-bold">About Tamipee Integrated Farms</h1>
+        <p class="lead mb-0">Naturally raised. Freshly delivered. Trusted by families across Nigeria.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Mission -->
+    <div class="row g-5 align-items-center mb-5">
+        <div class="col-lg-6">
+            <h2 class="fw-bold">Our Mission</h2>
+            <p class="text-muted">
+                At Tamipee Integrated Farms, we are committed to producing the highest quality livestock products
+                using sustainable, natural farming practices. From our pens to your plate, every product is
+                carefully raised, inspected, and delivered fresh.
+            </p>
+            <p class="text-muted">
+                We believe healthy animals produce healthy food. That's why we invest in proper feed, 
+                veterinary care, and responsible farming methods that protect both our animals and the environment.
+            </p>
+        </div>
+        <div class="col-lg-6">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="card border-0 bg-success bg-opacity-10 p-4 text-center rounded-3">
+                        <i class="bi bi-egg-fried fs-2 text-success mb-2"></i>
+                        <h5 class="fw-bold">Poultry</h5>
+                        <p class="text-muted small mb-0">Chickens, ducks, turkeys</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 bg-primary bg-opacity-10 p-4 text-center rounded-3">
+                        <i class="bi bi-droplet fs-2 text-primary mb-2"></i>
+                        <h5 class="fw-bold">Fish</h5>
+                        <p class="text-muted small mb-0">Catfish, tilapia</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 bg-warning bg-opacity-10 p-4 text-center rounded-3">
+                        <i class="bi bi-heart fs-2 text-warning mb-2"></i>
+                        <h5 class="fw-bold">Piggery</h5>
+                        <p class="text-muted small mb-0">Quality pork products</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 bg-info bg-opacity-10 p-4 text-center rounded-3">
+                        <i class="bi bi-leaf fs-2 text-info mb-2"></i>
+                        <h5 class="fw-bold">Natural</h5>
+                        <p class="text-muted small mb-0">100% natural feed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact & location -->
+    <div class="row g-4 align-items-stretch mt-1">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 p-lg-5">
+                    <h3 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill text-success me-2"></i>Contact & Location</h3>
+                    <p class="small text-muted mb-3">
+                        Visit us at our farm location or reach us through our support channels.
+                    </p>
+                    <p class="mb-2">
+                        <strong>Tamipee Integrated Farms</strong><br>
+                        Kilometer 2, Shell Location Road,<br>
+                        Uvwiamuge, Agbarho.
+                    </p>
+                    <p class="mb-1 small">
+                        <i class="bi bi-telephone-fill text-success me-2"></i>
+                        <a href="tel:08033414677">0803 341 4677</a>
+                    </p>
+                    <p class="mb-0 small">
+                        <i class="bi bi-envelope-fill text-success me-2"></i>
+                        <a href="mailto:tamipeeintfarms@gmail.com">tamipeeintfarms@gmail.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-body p-0">
+                    <iframe
+                        title="Tamipee Integrated Farms Location"
+                        src="https://www.google.com/maps?q=Tamipee+Integrated+Farms,+Kilometer+2,+Shell+Location+Road,+Uvwiamuge,+Agbarho&output=embed"
+                        width="100%"
+                        height="360"
+                        style="border:0;"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQs -->
+    {% if faqs %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="fw-bold text-center mb-4">Frequently Asked Questions</h2>
+            <div class="accordion" id="faqAccordion">
+                {% for faq in faqs %}
+                <div class="accordion-item border-0 shadow-sm mb-2">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#faq{{ faq.pk }}">
+                            {{ faq.question }}
+                        </button>
+                    </h2>
+                    <div id="faq{{ faq.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-muted">
+                            {{ faq.answer }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

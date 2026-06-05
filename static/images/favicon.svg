@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D47A1"/>
+      <stop offset="55%" stop-color="#1565C0"/>
+      <stop offset="100%" stop-color="#1B5E20"/>
+    </linearGradient>
+    <linearGradient id="house" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- House roof -->
+  <polygon points="32,9 55,30 9,30" fill="url(#house)"/>
+  <!-- Chimney -->
+  <rect x="42" y="16" width="5" height="10" rx="1" fill="#F59E0B"/>
+  <!-- House body -->
+  <rect x="14" y="30" width="36" height="24" rx="2" fill="white" opacity="0.95"/>
+  <!-- Door -->
+  <rect x="26" y="39" width="12" height="15" rx="2" fill="#1565C0"/>
+  <!-- Door knob -->
+  <circle cx="35" cy="47" r="1.2" fill="#FCD34D"/>
+  <!-- Left window -->
+  <rect x="17" y="33" width="8" height="7" rx="1.5" fill="#E3F2FD"/>
+  <line x1="21" y1="33" x2="21" y2="40" stroke="#1565C0" stroke-width=".8"/>
+  <line x1="17" y1="36.5" x2="25" y2="36.5" stroke="#1565C0" stroke-width=".8"/>
+  <!-- Right window -->
+  <rect x="39" y="33" width="8" height="7" rx="1.5" fill="#E8F5E9"/>
+  <line x1="43" y1="33" x2="43" y2="40" stroke="#2E7D32" stroke-width=".8"/>
+  <line x1="39" y1="36.5" x2="47" y2="36.5" stroke="#2E7D32" stroke-width=".8"/>
+  <!-- Green leaf above roof peak -->
+  <ellipse cx="31" cy="7.5" rx="3" ry="5" fill="#4CAF50" opacity=".9" transform="rotate(-25 31 7.5)"/>
+  <ellipse cx="33" cy="7.5" rx="3" ry="5" fill="#66BB6A" opacity=".85" transform="rotate(25 33 7.5)"/>
+</svg>

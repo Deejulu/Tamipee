@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sample Data Tools - Tamipee Integrated Farms{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard:admin' %}">Admin Dashboard</a></li>
+                    <li class="breadcrumb-item active">Sample Data Tools</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="bi bi-database-gear me-2"></i>Sample Data Management
+                </h2>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Info Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle text-primary me-2"></i>About Sample Data
+                    </h5>
+                    <p class="card-text">
+                        Sample data includes realistic livestock, products, orders, and site content based on 
+                        Tamipee Integrated Farms actual operations. Use these tools to quickly populate a 
+                        development or demo environment, or to clear sample data when no longer needed.
+                    </p>
+                    <ul class="mb-0">
+                        <li><strong>Populate:</strong> Creates categories, species, feeds, boosters, products, orders, testimonials, FAQs, and more.</li>
+                        <li><strong>Delete:</strong> Removes all sample data created by the populate command, preserving any manually entered data.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="row g-4">
+                <!-- Populate Sample Data -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="bi bi-plus-circle text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title">Populate Sample Data</h4>
+                            <p class="card-text text-muted">
+                                Add realistic sample livestock, products, site content, and demo orders 
+                                to your database with a single click.
+                            </p>
+                            <form method="post" action="{% url 'dashboard:admin_populate_sample_data' %}" 
+                                  onsubmit="return confirm('This will add sample data to your database. Continue?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-lg px-5">
+                                    <i class="bi bi-database-fill-add me-2"></i>Populate Sample Data
+                                </button>
+                            </form>
+                            <small class="text-muted d-block mt-3">
+                                Safe to run multiple times - uses get_or_create()
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Sample Data -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="bi bi-trash text-danger" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title">Delete Sample Data</h4>
+                            <p class="card-text text-muted">
+                                Remove all sample data (livestock, products, demo users, orders) created 
+                                by the populate command. Manual entries are preserved.
+                            </p>
+                            <form method="post" action="{% url 'dashboard:admin_delete_sample_data' %}" 
+                                  onsubmit="return confirm('⚠️ WARNING: This will permanently delete all sample data including demo orders and users. Are you absolutely sure?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-lg px-5">
+                                    <i class="bi bi-database-fill-x me-2"></i>Delete Sample Data
+                                </button>
+                            </form>
+                            <small class="text-muted d-block mt-3">
+                                ⚠️ This action cannot be undone
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-terminal text-secondary me-2"></i>Command Line Equivalents
+                    </h5>
+                    <p class="mb-2">You can also run these commands manually:</p>
+                    <div class="bg-dark text-light p-3 rounded">
+                        <code class="d-block mb-2">python manage.py populate_sample</code>
+                        <code class="d-block">python manage.py delete_sample</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-4">
+                <a href="{% url 'dashboard:admin' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Admin Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

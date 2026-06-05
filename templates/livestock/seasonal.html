@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Seasonal Variations - {{ species.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="fw-bold">Seasonal Variations &mdash; {{ species.name }}</h2>
+        <p class="text-muted">Track how this species performs across different seasons.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom px-4 py-3">
+                    <h5 class="fw-semibold mb-0">Add Seasonal Record</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100 mt-2">
+                            <i class="bi bi-plus-circle me-2"></i>Save Record
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            {% if species.seasonal_variations.all %}
+            <div class="row g-3">
+                {% for variation in species.seasonal_variations.all %}
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>{{ variation.season }}</strong>
+                            <span class="badge bg-success bg-opacity-10 text-success">{{ variation.year }}</span>
+                        </div>
+                        <p class="text-muted small mb-1">Count: <strong>{{ variation.count }}</strong></p>
+                        {% if variation.avg_weight %}
+                        <p class="text-muted small mb-1">Avg Weight: <strong>{{ variation.avg_weight }}kg</strong></p>
+                        {% endif %}
+                        {% if variation.notes %}
+                        <p class="text-muted small mb-0">{{ variation.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-sm p-5 text-center text-muted">
+                <i class="bi bi-calendar3 fs-1 d-block mb-3"></i>
+                <p>No seasonal records yet. Add the first one.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

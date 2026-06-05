@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Created - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-success shadow-lg">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <i class="bi bi-check-circle-fill fs-1"></i>
+                    <h2 class="fw-bold mt-2 mb-0">🎉 Account Created Successfully!</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-danger border-danger">
+                        <h4 class="alert-heading">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>⚠️ CRITICAL - Save These Credentials NOW!
+                        </h4>
+                        <p class="mb-0">
+                            <strong>This is your ONLY CHANCE to see your password and recovery codes!</strong> 
+                            Use the download buttons below to save everything in multiple formats.
+                        </p>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="card mb-4 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">First Name:</label>
+                                    <h5 class="fw-bold">{{ first_name }}</h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="text-muted mb-1">Last Name:</label>
+                                    <h5 class="fw-bold">{{ last_name }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Login Credentials -->
+                    <div class="card mb-4 border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-key-fill me-2"></i>Login Credentials</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <label class="text-muted mb-1">🆔 Username:</label>
+                                <h4 class="fw-bold text-primary mb-2" id="username-display" style="font-family: monospace;">{{ username }}</h4>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyUsername()">
+                                    <i class="bi bi-clipboard me-1"></i>Copy Username
+                                </button>
+                            </div>
+                            <div>
+                                <label class="text-muted mb-1">🔑 Password:</label>
+                                <h4 class="fw-bold text-primary mb-2" id="password-display" style="font-family: monospace;">{{ password }}</h4>
+                                <button class="btn btn-sm btn-outline-primary" onclick="copyPassword()">
+                                    <i class="bi bi-clipboard me-1"></i>Copy Password
+                                </button>
+                                <p class="text-muted mt-2 mb-0">
+                                    <i class="bi bi-info-circle me-1"></i>Use these credentials to log in after email verification
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recovery Codes -->
+                    <div class="card mb-4 border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="bi bi-shield-lock-fill me-2"></i>🔐 7 Recovery Codes (Save All!)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger mb-3">
+                                <strong><i class="bi bi-exclamation-octagon me-2"></i>Each code can only be used ONCE!</strong>
+                                <p class="mb-0 mt-2">
+                                    You need <strong>ONE recovery code</strong> + <strong>2 security question answers</strong> to reset your password.
+                                </p>
+                            </div>
+                            
+                            <div class="row g-2" id="recovery-codes-list">
+                                {% for code in recovery_codes %}
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body p-2 text-center">
+                                            <small class="text-muted">Code {{ forloop.counter }}</small>
+                                            <h5 class="fw-bold text-danger mb-0 recovery-code" style="font-family: monospace; letter-spacing: 0.05em;">
+                                                {{ code }}
+                                            </h5>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button class="btn btn-sm btn-outline-danger mt-3" onclick="copyAllRecoveryCodes()">
+                                <i class="bi bi-clipboard me-1"></i>Copy All Recovery Codes
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Security Questions & Answers -->
+                    <div class="card mb-4 border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="bi bi-question-circle-fill me-2"></i>Your Security Questions & Answers</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-info-circle me-1"></i>You'll need <strong>2 out of 3 correct answers</strong> to reset your password.
+                            </p>
+                            <div class="mb-0" id="security-questions-list">
+                                {% for question, answer in security_qa_pairs %}
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body">
+                                        <h6 class="text-warning mb-2"><strong>{{ forloop.counter }}. {{ question }}</strong></h6>
+                                        <p class="mb-0 ms-3"><strong>Answer:</strong> <span class="text-success">{{ answer }}</span></p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Important Information for Password Recovery -->
+                    <div class="card mb-4 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-shield-check text-success me-2"></i>📋 What You Need If You Forget Your Password
+                            </h5>
+                            <div class="alert alert-info mb-3">
+                                <h6 class="alert-heading">Password Reset Requirements:</h6>
+                                <ol class="mb-0">
+                                    <li><strong>First Name</strong> and <strong>Last Name</strong></li>
+                                    <li><strong>ONE</strong> of your 7 recovery codes (unused)</li>
+                                    <li>Correct answers to <strong>2 out of 3</strong> security questions</li>
+                                </ol>
+                            </div>
+                            
+                            <h6><i class="bi bi-exclamation-triangle text-warning me-2"></i>Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>✅ Each recovery code can only be used <strong>ONCE</strong></li>
+                                <li>✅ That's why we give you <strong>7 codes</strong> - keep them all safe!</li>
+                                <li>✅ <strong>Never share</strong> your recovery codes with anyone (not even Tamipee staff!)</li>
+                                <li>✅ <strong>Download</strong> your credentials using the buttons below</li>
+                                <li>✅ Store in a <strong>password manager</strong> or print and keep in a safe place</li>
+                                <li>💡 You can regenerate new recovery codes after logging in (Profile → Regenerate Recovery Codes)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Download Options -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">
+                                <i class="bi bi-download text-primary me-2"></i>📥 Save Your Credentials (Multiple Formats)
+                            </h5>
+                            <p class="text-muted mb-3">Choose at least 2 methods to save all your information:</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-3 col-sm-6">
+                                    <a href="{% url 'accounts:download_credentials_pdf' user_id %}" class="btn btn-danger w-100 btn-download">
+                                        <i class="bi bi-file-pdf fs-3 d-block mb-2"></i>
+                                        <strong>PDF</strong>
+                                        <small class="d-block">Best for printing</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <a href="{% url 'accounts:download_credentials_image' user_id %}" class="btn btn-info w-100 btn-download text-white">
+                                        <i class="bi bi-image fs-3 d-block mb-2"></i>
+                                        <strong>PNG Image</strong>
+                                        <small class="d-block">Save to phone</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <button onclick="downloadAsText()" class="btn btn-secondary w-100 btn-download">
+                                        <i class="bi bi-file-text fs-3 d-block mb-2"></i>
+                                        <strong>Text File</strong>
+                                        <small class="d-block">Simple .txt</small>
+                                    </button>
+                                </div>
+                                <div class="col-md-3 col-sm-6">
+                                    <button onclick="copyAllToClipboard()" class="btn btn-success w-100 btn-download">
+                                        <i class="bi bi-clipboard-check fs-3 d-block mb-2"></i>
+                                        <strong>Copy All</strong>
+                                        <small class="d-block">Paste to notes</small>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mt-3 mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                <strong>Tip:</strong> You can also take a screenshot of this page as a backup!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Verification Required -->
+                    <div class="card border-warning mb-4 shadow">
+                        <div class="card-header bg-warning text-dark text-center py-3">
+                            <i class="bi bi-envelope-check-fill fs-2"></i>
+                            <h4 class="fw-bold mt-2 mb-0">📧 Email Verification Required</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning border-warning mb-3">
+                                <h5 class="alert-heading">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>⚠️ Account Not Yet Active
+                                </h5>
+                                <p class="mb-0">
+                                    Before you can log in, you must verify your email address.
+                                </p>
+                            </div>
+
+                            <div class="text-center mb-4">
+                                <i class="bi bi-mailbox fs-1 text-primary d-block mb-3"></i>
+                                <h5 class="mb-3">A 6-digit verification code has been sent to:</h5>
+                                <p class="fs-5 fw-bold text-primary" style="font-family: monospace;">{{ user_email }}</p>
+                                <p class="text-muted">
+                                    <small>Check your inbox (and spam folder) for an email from Tamipee Integrated Farms</small>
+                                </p>
+                            </div>
+
+                            <div class="d-grid gap-3">
+                                <a href="{% url 'accounts:verify_email' user_id %}" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-key-fill me-2"></i>Enter Verification Code Now
+                                </a>
+                                <p class="text-center text-muted mb-0">
+                                    <small>Didn't receive the email? You can resend it on the verification page.</small>
+                                </p>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="alert alert-info mb-0">
+                                <h6 class="alert-heading"><i class="bi bi-clock-history me-2"></i>What Happens Next:</h6>
+                                <ol class="mb-0 ps-3">
+                                    <li>Check your email inbox for the verification code</li>
+                                    <li>Click "Enter Verification Code Now" above</li>
+                                    <li>Enter the 6-digit code from your email</li>
+                                    <li>Your account will be activated immediately</li>
+                                    <li>You can then log in with your username and password</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Checkbox -->
+                    <div class="card border-warning mb-4">
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmSaved" onchange="toggleContinueButton()">
+                                <label class="form-check-label fw-bold" for="confirmSaved">
+                                    <i class="bi bi-check-square text-warning me-2"></i>
+                                    I have saved my credentials and recovery codes, and I'm ready to verify my email
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-secondary btn-lg w-100" onclick="window.print()">
+                                <i class="bi bi-printer me-2"></i>Print This Page
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'accounts:verify_email' user_id %}" id="continueButton" class="btn btn-primary btn-lg w-100 disabled" aria-disabled="true">
+                                <i class="bi bi-envelope-check me-2"></i>Verify Email to Continue
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Store data for JavaScript functions
+const userData = {
+    firstName: "{{ first_name }}",
+    lastName: "{{ last_name }}",
+    username: "{{ username }}",
+    password: "{{ password }}",
+    recoveryCodes: [
+        {% for code in recovery_codes %}"{{ code }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ],
+    securityQAPairs: [
+        {% for question, answer in security_qa_pairs %}
+        {question: "{{ question|escapejs }}", answer: "{{ answer|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    email: "{{ user_email }}"
+};
+
+// Copy username to clipboard
+function copyUsername() {
+    navigator.clipboard.writeText(userData.username).then(() => {
+        alert('✅ Username copied to clipboard!');
+    });
+}
+
+// Copy password to clipboard
+function copyPassword() {
+    navigator.clipboard.writeText(userData.password).then(() => {
+        alert('✅ Password copied to clipboard!');
+    });
+}
+
+// Copy all recovery codes to clipboard
+function copyAllRecoveryCodes() {
+    const codes = userData.recoveryCodes.map((code, i) => `${i+1}. ${code}`).join('\n');
+    navigator.clipboard.writeText(codes).then(() => {
+        alert('✅ All 7 recovery codes copied to clipboard!');
+    });
+}
+
+// Copy all credentials to clipboard
+function copyAllToClipboard() {
+    const codes = userData.recoveryCodes.map((code, i) => `${i+1}. ${code}`).join('\n');
+    const qaPairs = userData.securityQAPairs.map((qa, i) => 
+        `${i+1}. ${qa.question}\n   Answer: ${qa.answer}`
+    ).join('\n\n');
+    
+    const text = `TAMIPEE INTEGRATED FARMS - ACCOUNT CREDENTIALS
+========================================
+Generated: ${new Date().toLocaleString()}
+
+PERSONAL INFORMATION:
+First Name: ${userData.firstName}
+Last Name: ${userData.lastName}
+
+LOGIN CREDENTIALS:
+Username: ${userData.username}
+Password: ${userData.password}
+Email: ${userData.email}
+
+7 RECOVERY CODES (each can only be used ONCE):
+${codes}
+
+SECURITY QUESTIONS & ANSWERS:
+${qaPairs}
+
+========================================
+PASSWORD RESET REQUIREMENTS:
+========================================
+If you forget your password, you will need:
+1. Your first name and last name
+2. ONE of your 7 recovery codes (unused)
+3. Correct answers to 2 out of 3 security questions
+
+IMPORTANT:
+- Each recovery code can only be used ONCE
+- Never share your recovery codes with anyone
+- Tamipee staff will NEVER ask for your recovery codes
+- Store this information in a secure location
+
+© ${new Date().getFullYear()} Tamipee Integrated Farms`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ All credentials copied to clipboard!\n\nPaste them into a secure note or password manager.');
+    });
+}
+
+// Download as text file
+function downloadAsText() {
+    const codes = userData.recoveryCodes.map((code, i) => `${i+1}. ${code}`).join('\n');
+    const qaPairs = userData.securityQAPairs.map((qa, i) => 
+        `${i+1}. ${qa.question}\n   Answer: ${qa.answer}`
+    ).join('\n\n');
+    
+    const content = `TAMIPEE INTEGRATED FARMS - ACCOUNT CREDENTIALS
+========================================
+Generated: ${new Date().toLocaleString()}
+
+PERSONAL INFORMATION:
+First Name: ${userData.firstName}
+Last Name: ${userData.lastName}
+
+LOGIN CREDENTIALS:
+Username: ${userData.username}
+Password: ${userData.password}
+Email: ${userData.email}
+
+7 RECOVERY CODES (each can only be used ONCE):
+${codes}
+
+SECURITY QUESTIONS & ANSWERS:
+${qaPairs}
+
+========================================
+PASSWORD RESET REQUIREMENTS:
+========================================
+If you forget your password, you will need:
+1. Your first name and last name
+2. ONE of your 7 recovery codes (unused)
+3. Correct answers to 2 out of 3 security questions
+
+========================================
+IMPORTANT INFORMATION:
+========================================
+
+LOGIN INSTRUCTIONS:
+- Use your username and password to log in
+- Make sure your email is verified first
+
+PASSWORD RESET PROCESS:
+- Go to "Forgot Password" page
+- Enter your first and last name
+- Enter ONE unused recovery code
+- Answer 2 out of 3 security questions correctly
+- Create your new password
+
+SECURITY TIPS:
+✓ Each recovery code can only be used ONCE
+✓ Keep all 7 codes in a safe location
+✓ Never share your recovery codes with anyone
+✓ Tamipee staff will NEVER ask for your recovery codes
+✓ Remember your security question answers
+✓ You can regenerate new recovery codes after logging in
+
+LOST ALL RECOVERY CODES?
+- Log in to your account
+- Go to Profile → Regenerate Recovery Codes
+- You can create 7 new codes after confirming your password
+
+========================================
+© ${new Date().getFullYear()} Tamipee Integrated Farms
+========================================`;
+    
+    const blob = new Blob([content], {type: 'text/plain'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `tamipee_credentials_${userData.username}_${new Date().toISOString().slice(0,10)}.txt`;
+    link.click();
+}
+
+// Enable/disable continue button based on checkbox
+function toggleContinueButton() {
+    const checkbox = document.getElementById('confirmSaved');
+    const button = document.getElementById('continueButton');
+    
+    if (checkbox.checked) {
+        button.classList.remove('disabled');
+        button.removeAttribute('aria-disabled');
+    } else {
+        button.classList.add('disabled');
+        button.setAttribute('aria-disabled', 'true');
+    }
+}
+</script>
+
+<style>
+.btn-download {
+    transition: transform 0.2s;
+}
+
+.btn-download:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+@media print {
+    .btn, button, .alert {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

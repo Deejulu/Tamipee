@@ -1,0 +1,188 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Growth Boosters & Supplements{% endblock %}
+{% block nav_boosters %}active{% endblock %}
+
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h5 class="mb-0"><i class="bi bi-lightning-charge me-2 text-warning"></i>Growth Boosters & Supplements</h5>
+        <p class="text-muted small mb-0 mt-1">Track every vitamin, probiotic, or supplement given to your animals.</p>
+    </div>
+</div>
+
+<!-- Explanation banner -->
+<div class="fm-explain-banner fm-explain-warning mb-4">
+    <div class="fm-explain-icon"><i class="bi bi-lightbulb-fill"></i></div>
+    <div>
+        <strong>What are Growth Boosters?</strong>
+        Growth boosters are any vitamins, probiotics, antibiotics, or supplements you give your animals on top of normal feed.
+        Recording them here lets you track <strong>what you spend on supplements</strong> per species, and see
+        whether what you're giving is actually improving production. The system stores the expected impact so you
+        can compare it against your real production logs over time.
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Left: Add form -->
+    <div class="col-lg-5">
+        <div class="fm-form-card">
+            <div class="fm-form-card-header">
+                <i class="bi bi-plus-circle me-2"></i>Add a Booster / Supplement
+            </div>
+            <form method="post" class="pt-3">
+                {% csrf_token %}
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-success-subtle"><i class="bi bi-grid-3x3-gap text-success"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.species.id_for_label }}">Which animal? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">The species receiving this supplement.</p>
+                        </div>
+                    </div>
+                    {{ form.species }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-warning-subtle"><i class="bi bi-capsule text-warning"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.name.id_for_label }}">Product Name <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">The brand/name of the supplement.</p>
+                        </div>
+                    </div>
+                    {{ form.name }}
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="fm-field-group mb-0">
+                            <label class="fw-semibold small mb-1" for="{{ form.booster_type.id_for_label }}">Type</label>
+                            {{ form.booster_type }}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="fm-field-group mb-0">
+                            <label class="fw-semibold small mb-1" for="{{ form.frequency.id_for_label }}">How often?</label>
+                            {{ form.frequency }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-info-subtle"><i class="bi bi-eyedropper text-info"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.dosage.id_for_label }}">Dosage</label>
+                            <p class="text-muted small mb-0">How much per animal or per litre of water.</p>
+                        </div>
+                    </div>
+                    {{ form.dosage }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-primary-subtle"><i class="bi bi-graph-up text-primary"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.expected_impact.id_for_label }}">Expected Impact</label>
+                            <p class="text-muted small mb-0">What you expect this to do for your animals.</p>
+                        </div>
+                    </div>
+                    {{ form.expected_impact }}
+                </div>
+
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-danger-subtle"><i class="bi bi-cash text-danger"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.cost_per_unit.id_for_label }}">Cost per Unit (₦)</label>
+                            <p class="text-muted small mb-0">Price per bottle/sachet/pack.</p>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">₦</span>
+                        {{ form.cost_per_unit }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-warning px-4 fw-semibold mt-2 w-100">
+                    <i class="bi bi-plus-circle me-2"></i>Save Booster Record
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right: Records table -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-semibold mb-0"><i class="bi bi-lightning-charge text-warning me-2"></i>Recorded Boosters</h6>
+                <span class="badge bg-warning text-dark">{{ boosters|length }} total</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table dashboard-table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Supplement</th>
+                                <th>Species</th>
+                                <th>Type</th>
+                                <th>Dosage</th>
+                                <th>How Often</th>
+                                <th>Cost</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in boosters %}
+                            <tr>
+                                <td>
+                                    <strong>{{ b.name }}</strong>
+                                    {% if b.expected_impact %}
+                                    <br><span class="text-muted small">{{ b.expected_impact|truncatewords:8 }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-success-subtle text-success">{{ b.species.name }}</span></td>
+                                <td><span class="badge bg-warning text-dark">{{ b.booster_type }}</span></td>
+                                <td class="small">{{ b.dosage }}</td>
+                                <td class="small">{{ b.frequency }}</td>
+                                <td class="fw-semibold text-success">₦{{ b.cost_per_unit }}</td>
+                                <td>
+                                    <a href="{% url 'dashboard:admin_delete_booster' b.pk %}"
+                                       class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirm('Delete booster &quot;{{ b.name }}&quot;?')"
+                                       title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-lightning-charge fs-2 d-block mb-2 opacity-25"></i>
+                                    No boosters recorded yet.<br>
+                                    <span class="small">Use the form on the left to add your first supplement record.</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips card -->
+        <div class="fm-tips-card mt-4">
+            <div class="fm-tips-header"><i class="bi bi-patch-check-fill me-2 text-warning"></i>Why track this?</div>
+            <ul class="fm-tips-list">
+                <li>You can compare your <strong>production logs</strong> before and after adding a supplement to see if it actually worked.</li>
+                <li>Tracking cost per unit lets you calculate the <strong>true cost of keeping your animals healthy</strong>, not just feed cost.</li>
+                <li>If mortality rate drops after adding a supplement, you have a <strong>record that explains why</strong>.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

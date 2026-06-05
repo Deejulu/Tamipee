@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Page Not Found - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="py-5">
+                <div class="display-1 fw-bold text-success mb-3">404</div>
+                <h2 class="fw-bold mb-3">Page Not Found</h2>
+                <p class="text-muted mb-4">
+                    Sorry, the page you're looking for doesn't exist or has been moved.
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    <a href="{% url 'store:home' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-house me-2"></i>Go Home
+                    </a>
+                    <a href="{% url 'store:product_list' %}" class="btn btn-outline-success btn-lg">
+                        <i class="bi bi-shop me-2"></i>Visit Shop
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}My Wishlist{% endblock %}
+{% block nav_customer_wishlist %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-heart me-2 text-danger"></i>My Wishlist</h5>
+    <a href="{% url 'store:product_list' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-shop me-1"></i>Browse More
+    </a>
+</div>
+
+{% if wishlist_items %}
+<div class="row g-3">
+    {% for item in wishlist_items %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" class="card-img-top" alt="{{ item.product.name }}" style="height:160px;object-fit:cover">
+            {% endif %}
+            <div class="card-body">
+                <h6 class="fw-bold">{{ item.product.name }}</h6>
+                <p class="text-success fw-semibold mb-1">&#8358;{{ item.product.price }} / {{ item.product.get_unit_display }}</p>
+                <p class="text-muted small">Added {{ item.added_at|date:"d M Y" }}</p>
+                <div class="d-flex gap-2">
+                    <form method="post" action="{% url 'store:add_to_cart' item.product.pk %}" class="flex-grow-1" data-add-to-cart-form>
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                        </button>
+                    </form>
+                    <a href="{% url 'store:toggle_wishlist' item.product.pk %}" class="btn btn-outline-danger btn-sm" title="Remove">
+                        <i class="bi bi-heart-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-heart fs-1 d-block mb-3"></i>
+    <h5>Your wishlist is empty</h5>
+    <p>Browse the shop and click the heart icon on any product to save it here.</p>
+    <a href="{% url 'store:product_list' %}" class="btn btn-success"><i class="bi bi-shop me-2"></i>Browse Products</a>
+</div>
+{% endif %}
+{% endblock %}

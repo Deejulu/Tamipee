@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Account - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center py-5 auth-shell" style="background: linear-gradient(135deg, var(--blue-light) 0%, var(--green-light) 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-sm-10 col-md-8 col-lg-6">
+                <div class="auth-card">
+                    <!-- Header -->
+                    <div class="auth-header">
+                        <div class="mb-3" style="font-size:2.8rem;"><i class="bi bi-person-plus-fill"></i></div>
+                        <h3 class="fw-bold mb-1">Create Your Account</h3>
+                        <p class="mb-0" style="color:rgba(255,255,255,.75); font-size:.93rem;">Enter your details to get started</p>
+                    </div>
+                    <!-- Body -->
+                    <div class="auth-body">
+                        <!-- Display Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Display Form Errors -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Please fix the following errors:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for field in form %}
+                                        {% if field.errors %}
+                                            {% for error in field.errors %}
+                                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if form.non_field_errors %}
+                                        {% for error in form.non_field_errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" novalidate class="auth-form">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div class="alert alert-info small mb-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Note:</strong> We'll generate a unique username for you. 
+                                Security questions are required for password recovery - make sure your answers are memorable!
+                            </div>
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success btn-lg fw-semibold">
+                                    <i class="bi bi-person-check me-2"></i>Create Account
+                                </button>
+                            </div>
+                        </form>
+                        <hr class="my-3">
+                        <p class="text-center mb-0 small">
+                            Already have an account?
+                            <a href="{% url 'accounts:login' %}" class="fw-semibold" style="color:var(--blue);">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.auth-form input[type="password"]').forEach(function (field) {
+        if (field.dataset.toggleReady === 'true') {
+            return;
+        }
+
+        const group = document.createElement('div');
+        group.className = 'input-group auth-password-group';
+        field.parentNode.insertBefore(group, field);
+        group.appendChild(field);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-toggle-pw';
+        btn.setAttribute('aria-label', 'Show password');
+        btn.title = 'Show password';
+        btn.innerHTML = '<i class="bi bi-eye"></i>';
+        group.appendChild(btn);
+
+        field.dataset.toggleReady = 'true';
+        field.classList.add('border-end-0');
+
+        btn.addEventListener('click', function () {
+            const hidden = field.type === 'password';
+            field.type = hidden ? 'text' : 'password';
+            btn.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+            btn.title = hidden ? 'Hide password' : 'Show password';
+            btn.querySelector('i').className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

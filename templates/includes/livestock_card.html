@@ -1,0 +1,17 @@
+<div class="card border-0 shadow-sm h-100">
+    {% if species.image %}
+    <img src="{{ species.image.url }}" alt="{{ species.name }}" class="card-img-top" style="height:180px;object-fit:cover">
+    {% else %}
+    <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px">
+        <i class="bi bi-egg-fried fs-2 text-muted"></i>
+    </div>
+    {% endif %}
+    <div class="card-body">
+        <span class="badge bg-success bg-opacity-10 text-success small mb-2">{{ species.category.name }}</span>
+        <h5 class="fw-bold mb-1">{{ species.name }}</h5>
+        {% if species.current_count %}
+        <p class="text-muted small mb-2">Count: <strong>{{ species.current_count }}</strong></p>
+        {% endif %}
+        <a href="{% url 'livestock:detail' species.pk %}" class="btn btn-outline-success btn-sm">Details</a>
+    </div>
+</div>

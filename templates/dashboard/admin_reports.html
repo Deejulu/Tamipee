@@ -1,0 +1,183 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Reports{% endblock %}
+{% block nav_reports %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-bar-chart-line me-2 text-success"></i>Business Reports</h5>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="bi bi-cash-stack fs-3"></i>
+            </div>
+            <div>
+                <div class="stat-value">&#8358;{{ total_revenue|floatformat:2 }}</div>
+                <div class="stat-label">Total Revenue (NGN)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-bag-check fs-3"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ total_orders }}</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-info bg-opacity-10 text-info">
+                <i class="bi bi-people fs-3"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ total_customers }}</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="section-header mt-4">
+    <h5><i class="bi bi-egg-fried me-2 text-warning"></i>Egg Production And Sales</h5>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_metrics.collected }}</div>
+            <div class="stat-label">Eggs Collected (30 Days)</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_metrics.saleable }}</div>
+            <div class="stat-label">Saleable Eggs</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_metrics.damaged }}</div>
+            <div class="stat-label">Damaged Eggs</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_metrics.trays }}</div>
+            <div class="stat-label">Estimated Trays Ready</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">&#8358;{{ egg_sales_revenue|floatformat:2 }}</div>
+            <div class="stat-label">Egg Sales Revenue</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_units_sold }}</div>
+            <div class="stat-label">Egg Order Units Sold</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">{{ egg_stock_units }}</div>
+            <div class="stat-label">Egg Stock Units Available</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="chart-card">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-pie-chart text-success me-2"></i>Revenue Overview (NGN)</h6>
+            <canvas id="revenueChart" height="200"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-card">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-bar-chart text-primary me-2"></i>Orders Summary</h6>
+            <canvas id="ordersChart" height="200"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="chart-card">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-graph-up-arrow text-warning me-2"></i>Saleable Egg Output (Last 7 Days)</h6>
+            <canvas id="eggProductionChart" height="110"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4 small">
+    <i class="bi bi-info-circle me-2"></i>
+    Revenue figures reflect only <strong>confirmed Paystack payments</strong>. Pending or failed payments are excluded.
+</div>
+
+<div class="alert alert-success mt-3 small">
+    <i class="bi bi-check-circle me-2"></i>
+    Egg analytics combine daily layer production logs with egg product sales so operations, losses, stock, and revenue stay visible in one place.
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('revenueChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Revenue Received', 'Pending'],
+        datasets: [{ data: [{{ total_revenue }}, 0], backgroundColor: ['#198754','#e9ecef'], borderWidth: 2 }]
+    },
+    options: {
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ₦' + Number(context.raw || 0).toLocaleString();
+                    }
+                }
+            }
+        },
+        responsive: true
+    }
+});
+new Chart(document.getElementById('ordersChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Total Orders', 'Customers'],
+        datasets: [{ label: 'Count', data: [{{ total_orders }}, {{ total_customers }}],
+            backgroundColor: ['#0d6efd','#198754'], borderRadius: 6 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('eggProductionChart'), {
+    type: 'line',
+    data: {
+        labels: {{ egg_production_labels|safe }},
+        datasets: [{
+            label: 'Saleable Eggs',
+            data: {{ egg_production_values|safe }},
+            fill: true,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+            tension: 0.3,
+            pointRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}

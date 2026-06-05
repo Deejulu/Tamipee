@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Server Error - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="py-5">
+                <div class="display-1 fw-bold text-danger mb-3">500</div>
+                <h2 class="fw-bold mb-3">Something Went Wrong</h2>
+                <p class="text-muted mb-4">
+                    We're experiencing a server error. Our team has been notified and is working on a fix.
+                    Please try again in a few moments.
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    <a href="{% url 'store:home' %}" class="btn btn-danger btn-lg">
+                        <i class="bi bi-house me-2"></i>Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

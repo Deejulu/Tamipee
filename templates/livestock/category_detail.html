@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} - Tamipee Farms{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'livestock:list' %}">Livestock</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="mb-4">
+        <h2 class="fw-bold">{{ category.name }}</h2>
+        {% if category.description %}<p class="text-muted">{{ category.description }}</p>{% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for species in species_list %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                {% if species.image %}
+                <img src="{{ species.image.url }}" alt="{{ species.name }}" class="card-img-top" style="height:190px;object-fit:cover">
+                {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:190px">
+                    <i class="bi bi-egg-fried fs-2 text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="fw-bold mb-1">{{ species.name }}</h5>
+                    {% if species.current_count %}
+                    <p class="text-muted small mb-2">Count: <strong>{{ species.current_count }}</strong></p>
+                    {% endif %}
+                    <a href="{% url 'livestock:detail' species.pk %}" class="btn btn-outline-success btn-sm">Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            <h5>No species in this category yet.</h5>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

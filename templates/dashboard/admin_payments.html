@@ -1,0 +1,48 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Payments{% endblock %}
+{% block nav_payments %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-credit-card me-2 text-success"></i>Payment Records</h5>
+    <span class="text-muted small">{{ payments.paginator.count }} total payment{{ payments.paginator.count|pluralize }}</span>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table dashboard-table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Customer</th>
+                        <th>Order #</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td><code class="small">{{ payment.reference }}</code></td>
+                        <td>{{ payment.user.get_full_name|default:payment.user.username }}</td>
+                        <td>#{{ payment.order.pk }}</td>
+                        <td>&#8358;{{ payment.amount|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge {% if payment.status == 'success' %}bg-success{% elif payment.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                {{ payment.status|title }}
+                            </span>
+                        </td>
+                        <td>{{ payment.created_at|date:"d M Y, g:i a" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No payments recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include 'includes/dashboard_pagination.html' with page_obj=payments %}
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}My Orders{% endblock %}
+{% block nav_customer_orders %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <h5><i class="bi bi-bag me-2 text-success"></i>My Orders</h5>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="text-muted small">{{ orders.paginator.count }} total order{{ orders.paginator.count|pluralize }}</span>
+        <a href="{% url 'store:product_list' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-shop me-1"></i>Continue Shopping
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table dashboard-table mb-0">
+            <thead>
+                <tr><th>Order #</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>#{{ order.pk }}</strong></td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>{{ order.items.count }} item(s)</td>
+                    <td>&#8358;{{ order.total_amount|floatformat:2 }}</td>
+                    <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                    <td>
+                        <a href="{% url 'store:order_detail' order.pk %}" class="btn btn-outline-success btn-sm">View</a>
+                        {% if order.status == 'pending' or order.status == 'confirmed' %}
+                        <form method="post" action="{% url 'store:cancel_order' order.pk %}" class="d-inline ms-1">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel order #{{ order.pk }}?')">Cancel</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <i class="bi bi-bag-x fs-1 d-block mb-2"></i>
+                        You haven't placed any orders yet.
+                        <br>
+                        <a href="{% url 'store:product_list' %}" class="btn btn-success mt-3">Start Shopping</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/dashboard_pagination.html' with page_obj=orders %}
+</div>
+{% endblock %}

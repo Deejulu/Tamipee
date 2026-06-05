@@ -1,0 +1,323 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Feed Schedule{% endblock %}
+{% block nav_feed %}active{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="section-header">
+    <div>
+        <h5 class="mb-0"><i class="bi bi-basket me-2 text-success"></i>Feed Schedule Entry</h5>
+        <p class="text-muted small mb-0 mt-1">Set how much and when each species is fed — the system calculates costs automatically.</p>
+    </div>
+    <a href="{% url 'dashboard:admin_livestock' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<!-- What is a Feed Schedule — explanation banner -->
+<div class="fm-explain-banner mb-4">
+    <div class="fm-explain-icon"><i class="bi bi-lightbulb-fill"></i></div>
+    <div>
+        <strong>What is a Feed Schedule?</strong>
+        A feed schedule is your daily feeding plan for a species — how much feed they eat, how many times a day,
+        what it costs you, and which season it applies to. Once saved, the system automatically works out your
+        <strong>daily feed cost</strong> and shows it in your livestock analytics.
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Left: Form -->
+    <div class="col-lg-7">
+        <div class="fm-form-card">
+
+            <form method="post" id="feedScheduleForm">
+                {% csrf_token %}
+
+                <!-- Species -->
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-success-subtle"><i class="bi bi-grid-3x3-gap text-success"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.species.id_for_label }}">Which animal is this for? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">Pick the species this schedule applies to.</p>
+                        </div>
+                    </div>
+                    {{ form.species }}
+                    {% if form.species.errors %}<div class="invalid-feedback d-block">{{ form.species.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Feed Type -->
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-warning-subtle"><i class="bi bi-bag text-warning"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.feed_type.id_for_label }}">Feed Type <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">The name of the feed — e.g. Layer Mash, Starter Pellets, Floating Pellets.</p>
+                        </div>
+                    </div>
+                    {{ form.feed_type }}
+                    {% if form.feed_type.errors %}<div class="invalid-feedback d-block">{{ form.feed_type.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Quantity + Cost side by side -->
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="fm-field-group mb-0">
+                            <div class="fm-field-label">
+                                <span class="fm-field-icon bg-primary-subtle"><i class="bi bi-speedometer2 text-primary"></i></span>
+                                <div>
+                                    <label class="fw-semibold mb-0" for="{{ form.daily_quantity_kg.id_for_label }}">Daily Quantity (kg) <span class="text-danger">*</span></label>
+                                    <p class="text-muted small mb-0">Total kg consumed per day.</p>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                {{ form.daily_quantity_kg }}
+                                <span class="input-group-text">kg</span>
+                            </div>
+                            {% if form.daily_quantity_kg.errors %}<div class="invalid-feedback d-block">{{ form.daily_quantity_kg.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="fm-field-group mb-0">
+                            <div class="fm-field-label">
+                                <span class="fm-field-icon bg-danger-subtle"><i class="bi bi-cash text-danger"></i></span>
+                                <div>
+                                    <label class="fw-semibold mb-0" for="{{ form.cost_per_kg.id_for_label }}">Cost per kg (₦) <span class="text-danger">*</span></label>
+                                    <p class="text-muted small mb-0">What you pay per kg of this feed.</p>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">₦</span>
+                                {{ form.cost_per_kg }}
+                            </div>
+                            {% if form.cost_per_kg.errors %}<div class="invalid-feedback d-block">{{ form.cost_per_kg.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Cost Preview -->
+                <div class="fm-cost-preview" id="costPreview" style="display:none;">
+                    <i class="bi bi-calculator me-2"></i>
+                    <span>Estimated daily feed cost:</span>
+                    <strong id="costValue" class="ms-1 text-success">₦0.00</strong>
+                    <span class="text-muted ms-2 small">(quantity × cost per kg)</span>
+                </div>
+
+                <!-- Feeding Times — Visual Picker -->
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-info-subtle"><i class="bi bi-clock text-info"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0">Feeding Times <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">Tap the times your animals are fed each day. You can add custom times too.</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick-pick time chips -->
+                    <div class="fm-time-chips mb-2" id="timeChips">
+                        {% for label, val in time_choices %}
+                        <button type="button" class="fm-time-chip" data-time="{{ val }}">{{ label }}</button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Selected times display -->
+                    <div class="fm-selected-times mb-2" id="selectedTimesDisplay" style="display:none;">
+                        <span class="text-muted small me-2">Selected:</span>
+                        <span id="selectedTimesTags"></span>
+                    </div>
+
+                    <!-- Hidden / manual input that actually submits -->
+                    <div class="input-group">
+                        {{ form.feeding_times }}
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearTimesBtn" title="Clear all times">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="form-text text-muted small mt-1">
+                        <i class="bi bi-info-circle me-1"></i>You can also type directly, e.g. <em>7:00 AM, 12:00 PM, 5:00 PM</em>
+                    </div>
+                    {% if form.feeding_times.errors %}<div class="invalid-feedback d-block">{{ form.feeding_times.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Season -->
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-success-subtle"><i class="bi bi-cloud-sun text-success"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.season.id_for_label }}">Season</label>
+                            <p class="text-muted small mb-0">Set <em>All Seasons</em> unless your feeding amount changes between dry and rainy season.</p>
+                        </div>
+                    </div>
+                    {{ form.season }}
+                    {% if form.season.errors %}<div class="invalid-feedback d-block">{{ form.season.errors }}</div>{% endif %}
+                </div>
+
+                <!-- Notes -->
+                <div class="fm-field-group">
+                    <div class="fm-field-label">
+                        <span class="fm-field-icon bg-secondary-subtle"><i class="bi bi-sticky text-secondary"></i></span>
+                        <div>
+                            <label class="fw-semibold mb-0" for="{{ form.notes.id_for_label }}">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                            <p class="text-muted small mb-0">Any extra details — brand of feed, special instructions, etc.</p>
+                        </div>
+                    </div>
+                    {{ form.notes }}
+                </div>
+
+                <button type="submit" class="btn btn-success px-5 mt-2 fw-semibold">
+                    <i class="bi bi-check-circle me-2"></i>Save Feed Schedule
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right: How it works panel -->
+    <div class="col-lg-5">
+
+        <!-- How it works -->
+        <div class="fm-info-card mb-4">
+            <div class="fm-info-card-header">
+                <i class="bi bi-gear-fill me-2"></i>How the system uses this
+            </div>
+            <div class="fm-info-card-body">
+                <div class="fm-step">
+                    <div class="fm-step-num">1</div>
+                    <div><strong>You enter:</strong> feed type, kg/day, cost per kg, feeding times.</div>
+                </div>
+                <div class="fm-step">
+                    <div class="fm-step-num">2</div>
+                    <div><strong>System calculates:</strong> Daily cost = daily kg × cost per kg. Shown live above.</div>
+                </div>
+                <div class="fm-step">
+                    <div class="fm-step-num">3</div>
+                    <div><strong>Analytics page</strong> shows a bar chart of feed costs per species — so you always know where your money goes.</div>
+                </div>
+                <div class="fm-step">
+                    <div class="fm-step-num">4</div>
+                    <div><strong>Seasonal flag</strong> lets you create a dry-season and a rainy-season schedule separately if feeding amounts differ.</div>
+                </div>
+                <div class="fm-step">
+                    <div class="fm-step-num">5</div>
+                    <div><strong>Staff members</strong> can see feeding schedules on their dashboard and know exactly when and what to feed.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick tips -->
+        <div class="fm-tips-card">
+            <div class="fm-tips-header"><i class="bi bi-patch-check-fill me-2 text-success"></i>Quick Tips</div>
+            <ul class="fm-tips-list">
+                <li>For <strong>Layer hens</strong>, typical feeding is 3× daily: morning, noon, evening.</li>
+                <li>For <strong>Catfish</strong>, once or twice daily is standard — morning and late afternoon.</li>
+                <li>For <strong>Broilers</strong>, feed is usually available all day (ad libitum) — enter feeding times as <em>All day</em>.</li>
+                <li>You can add <strong>multiple schedules</strong> for the same species — e.g. one for dry season, one for rainy season.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    // ── Feeding time chip picker ─────────────────────────────────
+    const input       = document.getElementById('id_feeding_times');
+    const chipsWrap   = document.getElementById('timeChips');
+    const tagsWrap    = document.getElementById('selectedTimesDisplay');
+    const tagsSpan    = document.getElementById('selectedTimesTags');
+    const clearBtn    = document.getElementById('clearTimesBtn');
+
+    function parseTimes(val) {
+        return (val || '').split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    function renderTags(times) {
+        tagsSpan.innerHTML = '';
+        times.forEach(function (t) {
+            const tag = document.createElement('span');
+            tag.className = 'fm-tag';
+            tag.innerHTML = t + ' <button type="button" class="fm-tag-remove" aria-label="Remove ' + t + '">&times;</button>';
+            tag.querySelector('.fm-tag-remove').addEventListener('click', function () {
+                removeTime(t);
+            });
+            tagsSpan.appendChild(tag);
+        });
+        tagsWrap.style.display = times.length ? 'flex' : 'none';
+    }
+
+    function syncChips(times) {
+        chipsWrap.querySelectorAll('.fm-time-chip').forEach(function (chip) {
+            chip.classList.toggle('active', times.includes(chip.dataset.time));
+        });
+    }
+
+    function setTimes(times) {
+        input.value = times.join(', ');
+        renderTags(times);
+        syncChips(times);
+    }
+
+    function addTime(t) {
+        const times = parseTimes(input.value);
+        if (!times.includes(t)) { times.push(t); }
+        setTimes(times);
+    }
+
+    function removeTime(t) {
+        const times = parseTimes(input.value).filter(s => s !== t);
+        setTimes(times);
+    }
+
+    // Chip clicks
+    chipsWrap.querySelectorAll('.fm-time-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const t = chip.dataset.time;
+            const times = parseTimes(input.value);
+            if (times.includes(t)) { removeTime(t); } else { addTime(t); }
+        });
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', function () { setTimes([]); });
+
+    // Keep tags in sync when user types manually
+    input.addEventListener('input', function () {
+        const times = parseTimes(input.value);
+        renderTags(times);
+        syncChips(times);
+    });
+
+    // Initialise from existing value (e.g. edit mode)
+    if (input.value.trim()) {
+        const times = parseTimes(input.value);
+        renderTags(times);
+        syncChips(times);
+    }
+
+    // ── Live cost calculator ─────────────────────────────────────
+    const qtyInput  = document.getElementById('id_daily_quantity_kg');
+    const costInput = document.getElementById('id_cost_per_kg');
+    const preview   = document.getElementById('costPreview');
+    const costVal   = document.getElementById('costValue');
+
+    function updateCost() {
+        const qty  = parseFloat(qtyInput.value)  || 0;
+        const cost = parseFloat(costInput.value) || 0;
+        if (qty > 0 && cost > 0) {
+            const total = (qty * cost).toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            costVal.textContent = '₦' + total;
+            preview.style.display = 'flex';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    qtyInput.addEventListener('input', updateCost);
+    costInput.addEventListener('input', updateCost);
+    updateCost();
+}());
+</script>
+{% endblock %}
