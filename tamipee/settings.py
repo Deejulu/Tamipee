@@ -127,7 +127,7 @@ DATABASES = {
 }
 
 # Use PostgreSQL in production (Render provides DATABASE_URL)
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
 if DATABASE_URL:
     DATABASES['default'] = dj_database_url.parse(
         DATABASE_URL,
