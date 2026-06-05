@@ -237,53 +237,51 @@
             <div class="fm-table-header">
                 <div>
                     <span class="fw-bold"><i class="bi bi-basket text-warning me-2"></i>Feed Consumption History</span>
-                    <span class="text-muted small ms-2">— what was actually fed each day</span>
+                    <span class="text-muted small ms-2">— last 60 days</span>
                 </div>
-                <span class="badge bg-warning text-dark">Last 60</span>
+                <span class="badge bg-warning text-dark">{{ feed_logs|length }}</span>
             </div>
             <div class="card-body p-0">
+                {% if feed_logs %}
                 <div class="table-responsive">
-                    <table class="table dashboard-table mb-0">
+                    <table class="table dashboard-table fm-log-history-table mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Species</th>
-                                <th>Feed Type</th>
-                                <th class="text-end">Bags</th>
-                                <th>Logged By</th>
-                                <th></th>
+                                <th style="width:12%;">Date</th>
+                                <th style="width:14%;" class="d-none d-md-table-cell">Species</th>
+                                <th style="width:16%;" class="d-none d-sm-table-cell">Feed Type</th>
+                                <th style="width:10%;" class="text-end">Bags</th>
+                                <th style="width:12%;" class="d-none d-lg-table-cell">By</th>
+                                <th style="width:8%;" class="text-center"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for log in feed_logs %}
                             <tr>
-                                <td class="text-nowrap small fw-semibold">{{ log.date|date:"d M Y" }}</td>
-                                <td><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
-                                <td class="small text-muted">{{ log.feed_type }}</td>
-                                <td class="text-end fw-bold">{{ log.bags_consumed }}</td>
-                                <td class="small text-muted">
-                                    {% if log.recorded_by %}{{ log.recorded_by.get_full_name|default:log.recorded_by.username }}{% else %}—{% endif %}
-                                </td>
-                                <td>
+                                <td data-label="Date" class="text-nowrap small fw-semibold">{{ log.date|date:"d M" }}</td>
+                                <td data-label="Species" class="d-none d-md-table-cell"><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
+                                <td data-label="Feed Type" class="d-none d-sm-table-cell small text-muted">{{ log.feed_type|truncatewords:2 }}</td>
+                                <td data-label="Bags" class="text-end fw-bold">{{ log.bags_consumed }}</td>
+                                <td data-label="By" class="d-none d-lg-table-cell small text-muted">{% if log.recorded_by %}{{ log.recorded_by.first_name|default:log.recorded_by.username }}{% else %}—{% endif %}</td>
+                                <td class="text-center">
                                     <a href="{% url 'dashboard:admin_delete_feed_log' log.pk %}"
-                                       class="btn btn-outline-danger btn-sm py-0 px-2"
-                                       onclick="return confirm('Delete this feed entry?')" title="Delete">
+                                       class="btn btn-outline-danger btn-sm py-0 px-1"
+                                       onclick="return confirm('Delete this entry?')" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
-                                    <i class="bi bi-basket fs-2 d-block mb-2 opacity-25"></i>
-                                    No feed entries yet.<br>
-                                    <span class="small">Use the form above to log today's feed consumption.</span>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="fm-empty-state">
+                    <i class="bi bi-basket"></i>
+                    <p>No feed entries yet.</p>
+                    <small class="text-muted">Use the form above to log today's feed consumption.</small>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -294,61 +292,63 @@
             <div class="fm-table-header">
                 <div>
                     <span class="fw-bold"><i class="bi bi-egg text-success me-2"></i>Production / Harvest History</span>
-                    <span class="text-muted small ms-2">— what was collected or harvested</span>
+                    <span class="text-muted small ms-2">— last 60 days</span>
                 </div>
-                <span class="badge bg-success">Last 60</span>
+                <span class="badge bg-success">{{ production_logs|length }}</span>
             </div>
             <div class="card-body p-0">
+                {% if production_logs %}
                 <div class="table-responsive">
-                    <table class="table dashboard-table mb-0">
+                    <table class="table dashboard-table fm-log-history-table mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Date</th>
-                                <th>Species</th>
-                                <th>Product</th>
-                                <th class="text-end">Collected</th>
-                                <th class="text-end text-danger">Damaged</th>
-                                <th class="text-end text-success">Saleable</th>
-                                <th class="text-end">Qty</th>
-                                <th>Unit</th>
-                                <th></th>
+                                <th style="width:10%;">Date</th>
+                                <th style="width:12%;" class="d-none d-md-table-cell">Species</th>
+                                <th style="width:14%;" class="d-none d-sm-table-cell">Product</th>
+                                <th style="width:10%;" class="text-end d-none d-lg-table-cell">Collected</th>
+                                <th style="width:10%;" class="text-end d-none d-xl-table-cell">Damaged</th>
+                                <th style="width:10%;" class="text-end d-none d-lg-table-cell">Saleable</th>
+                                <th style="width:8%;" class="text-end">Qty</th>
+                                <th style="width:10%;" class="d-none d-md-table-cell">Unit</th>
+                                <th style="width:8%;" class="text-center"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for log in production_logs %}
                             <tr>
-                                <td class="text-nowrap small fw-semibold">{{ log.date|date:"d M Y" }}</td>
-                                <td><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
-                                <td class="small">{{ log.product }}</td>
-                                <td class="text-end small">{{ log.egg_count|default:'—' }}</td>
-                                <td class="text-end small text-danger">{% if log.egg_count is not None %}{{ log.damaged_count }}{% else %}—{% endif %}</td>
-                                <td class="text-end small fw-bold text-success">{% if log.egg_count is not None %}{{ log.saleable_quantity }}{% else %}—{% endif %}</td>
-                                <td class="text-end fw-bold">{{ log.quantity }}</td>
-                                <td class="small text-muted">{{ log.get_unit_display }}</td>
-                                <td>
+                                <td data-label="Date" class="text-nowrap small fw-semibold">{{ log.date|date:"d M" }}</td>
+                                <td data-label="Species" class="d-none d-md-table-cell"><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
+                                <td data-label="Product" class="d-none d-sm-table-cell small">{{ log.product|truncatewords:1 }}</td>
+                                <td data-label="Collected" class="text-end d-none d-lg-table-cell small">{{ log.egg_count|default:'—' }}</td>
+                                <td data-label="Damaged" class="text-end d-none d-xl-table-cell small text-danger">{% if log.egg_count is not None %}{{ log.damaged_count }}{% else %}—{% endif %}</td>
+                                <td data-label="Saleable" class="text-end d-none d-lg-table-cell small fw-bold text-success">{% if log.egg_count is not None %}{{ log.saleable_quantity }}{% else %}—{% endif %}</td>
+                                <td data-label="Qty" class="text-end fw-bold">{{ log.quantity }}</td>
+                                <td data-label="Unit" class="d-none d-md-table-cell small text-muted">{{ log.get_unit_display }}</td>
+                                <td class="text-center">
                                     <a href="{% url 'dashboard:admin_delete_production_log' log.pk %}"
-                                       class="btn btn-outline-danger btn-sm py-0 px-2"
-                                       onclick="return confirm('Delete this production entry?')" title="Delete">
+                                       class="btn btn-outline-danger btn-sm py-0 px-1"
+                                       onclick="return confirm('Delete this entry?')" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="9" class="text-center text-muted py-5">
-                                    <i class="bi bi-egg fs-2 d-block mb-2 opacity-25"></i>
-                                    No production entries yet.<br>
-                                    <span class="small">Use the form above to record today's harvest.</span>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="fm-empty-state">
+                    <i class="bi bi-egg"></i>
+                    <p>No production entries yet.</p>
+                    <small class="text-muted">Use the form above to record today's harvest.</small>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
 
 {% endblock %}
 
