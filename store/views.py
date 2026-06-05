@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, ProgrammingError
 from django.db.models import Q
 from livestock.models import LivestockCategory, LivestockSpecies
 from .models import Product, Cart, CartItem, Order, OrderItem, Testimonial, FAQ, Banner, Announcement, WishlistItem, Promotion, ContactMessage
@@ -38,7 +38,10 @@ def home(request):
     featured_products = Product.objects.filter(is_available=True, is_featured=True)[:6]
     banners = Banner.objects.filter(is_active=True)
     testimonials = Testimonial.objects.filter(is_active=True)[:4]
-    announcements = Announcement.objects.filter(is_active=True)[:3]
+    try:
+        announcements = Announcement.objects.filter(is_active=True)[:3]
+    except ProgrammingError:
+        announcements = Announcement.objects.none()
     return render(request, 'store/home.html', {
         'featured_products': featured_products,
         'banners': banners,
