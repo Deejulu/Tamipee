@@ -30,13 +30,23 @@ def create_superuser_from_env():
 
     UserModel = get_user_model()
     try:
-        if UserModel.objects.filter(username=username).exists():
+        user = UserModel.objects.filter(username=username).first()
+        if user:
+            if user.is_superuser:
+                user.set_password(password)
+                user.email = email
+                user.is_active = True
+                user.is_staff = True
+                user.save(update_fields=['password', 'email', 'is_active', 'is_staff'])
+                print(f'Updated superuser credentials: {username}')
+            else:
+                print(f'Existing non-superuser account with username {username} was found; skipping env superuser creation.', file=sys.stderr)
             return
 
         UserModel.objects.create_superuser(username=username, email=email, password=password)
         print(f'Created superuser: {username}')
     except Exception as exc:
-        print(f'Failed to create superuser {username}:', exc, file=sys.stderr)
+        print(f'Failed to create or update superuser {username}:', exc, file=sys.stderr)
 
 
 try:
