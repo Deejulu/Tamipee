@@ -20,3 +20,5 @@ echo "🚀 Your Tamipee Integrated Farms application is ready to deploy."
 # Optional: Populate sample data (uncomment if you want sample data on first deploy)
 # echo "🌱 Populating sample data..."
 # python manage.py populate_sample
+
+
