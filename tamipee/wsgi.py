@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 
 import os
 import sys
+import traceback
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -22,11 +24,19 @@ def create_superuser_from_env():
     password = os.getenv('DJANGO_SUPERUSER_PASSWORD', '').strip()
     email = os.getenv('DJANGO_SUPERUSER_EMAIL', '').strip()
 
+    print('WSGI startup: superuser env check', file=sys.stdout)
+    print(f'  DJANGO_SUPERUSER_USERNAME={username!r}', file=sys.stdout)
+    print(f'  DJANGO_SUPERUSER_PASSWORD_set={bool(password)}', file=sys.stdout)
+    print(f'  DJANGO_SUPERUSER_EMAIL={email!r}', file=sys.stdout)
+    sys.stdout.flush()
+
     if not username or not password:
+        print('Skipping superuser creation: username or password missing.', file=sys.stdout)
+        sys.stdout.flush()
         return
 
     if not email:
-        email = f'{username}@example.com'
+        email = f'{username}+{uuid.uuid4().hex[:8]}@example.com'
 
     UserModel = get_user_model()
     try:
@@ -39,20 +49,31 @@ def create_superuser_from_env():
             if hasattr(user, 'role'):
                 user.role = 'admin'
             user.set_password(password)
-            user.save(update_fields=['password', 'email', 'is_active', 'is_staff', 'is_superuser', 'role'])
-            print(f'Updated existing user to superuser credentials: {username}')
+            update_fields = ['password', 'email', 'is_active', 'is_staff', 'is_superuser']
+            if hasattr(user, 'role'):
+                update_fields.append('role')
+            user.save(update_fields=update_fields)
+            print(f'Updated existing user to superuser credentials: {username}', file=sys.stdout)
+            sys.stdout.flush()
             return
 
         UserModel.objects.create_superuser(username=username, email=email, password=password)
-        print(f'Created superuser: {username}')
-    except Exception as exc:
-        print(f'Failed to create or update superuser {username}:', exc, file=sys.stderr)
+        print(f'Created superuser: {username}', file=sys.stdout)
+        sys.stdout.flush()
+    except Exception:
+        print(f'Failed to create or update superuser {username}:', file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
 
 
 try:
+    print('WSGI startup: running migrations and superuser creation', file=sys.stdout)
+    sys.stdout.flush()
     call_command('migrate', interactive=False)
     create_superuser_from_env()
-except Exception as exc:
-    print('Startup initialization failed:', exc, file=sys.stderr)
+except Exception:
+    print('Startup initialization failed:', file=sys.stderr)
+    traceback.print_exc(file=sys.stderr)
+    sys.stderr.flush()
 
 application = get_wsgi_application()
