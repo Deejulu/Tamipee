@@ -66,6 +66,10 @@ def create_superuser_from_env():
         sys.stderr.flush()
 
 
+# Get the WSGI application first so Django's app registry is initialized
+application = get_wsgi_application()
+
+# Now run startup tasks (migrations + superuser creation)
 try:
     print('WSGI startup: running migrations and superuser creation', file=sys.stdout)
     sys.stdout.flush()
@@ -75,5 +79,3 @@ except Exception:
     print('Startup initialization failed:', file=sys.stderr)
     traceback.print_exc(file=sys.stderr)
     sys.stderr.flush()
-
-application = get_wsgi_application()
