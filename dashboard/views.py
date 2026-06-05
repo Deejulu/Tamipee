@@ -80,13 +80,22 @@ def _send_order_status_email(order):
 
 @role_required('admin')
 def admin_dashboard(request):
+    from payments.models import Payment as PaymentModel
+    today = timezone.localdate()
+    total_revenue = sum(p.amount for p in PaymentModel.objects.filter(status='success'))
     context = {
         'total_users': CustomUser.objects.count(),
         'total_orders': Order.objects.count(),
         'total_products': Product.objects.count(),
         'total_livestock': LivestockSpecies.objects.count(),
         'pending_orders': Order.objects.filter(status='pending').count(),
-        'recent_orders': Order.objects.order_by('-created_at')[:5],
+        'recent_orders': Order.objects.select_related('user').order_by('-created_at')[:6],
+        'total_revenue': total_revenue,
+        'total_customers': CustomUser.objects.filter(role='customer').count(),
+        'new_users_today': CustomUser.objects.filter(date_joined__date=today).count(),
+        'orders_today': Order.objects.filter(created_at__date=today).count(),
+        'delivered_orders': Order.objects.filter(status='delivered').count(),
+        'cancelled_orders': Order.objects.filter(status='cancelled').count(),
     }
     return render(request, 'dashboard/admin.html', context)
 
@@ -110,9 +119,63 @@ def customer_dashboard(request):
 
 @role_required('admin')
 def admin_users(request):
-    users = CustomUser.objects.all().order_by('-date_joined')
+    qs = CustomUser.objects.all().order_by('-date_joined')
+    search = request.GET.get('q', '').strip()
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+
+    if search:
+        qs = qs.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(phone__icontains=search)
+        )
+    if role_filter == 'superuser':
+        qs = qs.filter(is_superuser=True)
+    elif role_filter:
+        qs = qs.filter(role=role_filter)
+    if status_filter == 'active':
+        qs = qs.filter(is_active=True)
+    elif status_filter == 'inactive':
+        qs = qs.filter(is_active=False)
+
+    users = _paginate_queryset(request, qs, per_page=15)
     role_choices = [choice[0] for choice in CustomUser.ROLE_CHOICES]
-    return render(request, 'dashboard/admin_users.html', {'users': users, 'role_choices': role_choices})
+    context = {
+        'users': users,
+        'role_choices': role_choices,
+        'search': search,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+        'total_users': CustomUser.objects.count(),
+        'total_admins': CustomUser.objects.filter(role='admin').count(),
+        'total_staff': CustomUser.objects.filter(role='staff').count(),
+        'total_customers': CustomUser.objects.filter(role='customer').count(),
+        'active_users': CustomUser.objects.filter(is_active=True).count(),
+    }
+    return render(request, 'dashboard/admin_users.html', context)
+
+
+@role_required('admin')
+def admin_user_detail(request, pk):
+    from payments.models import Payment as PaymentModel
+    target_user = get_object_or_404(CustomUser, pk=pk)
+    user_orders = Order.objects.filter(user=target_user).order_by('-created_at')[:10]
+    user_payments = PaymentModel.objects.filter(user=target_user).order_by('-created_at')[:10]
+    total_orders = Order.objects.filter(user=target_user).count()
+    total_spent = sum(p.amount for p in PaymentModel.objects.filter(user=target_user, status='success'))
+    role_choices = [choice[0] for choice in CustomUser.ROLE_CHOICES]
+    context = {
+        'target_user': target_user,
+        'user_orders': user_orders,
+        'user_payments': user_payments,
+        'total_orders': total_orders,
+        'total_spent': total_spent,
+        'role_choices': role_choices,
+    }
+    return render(request, 'dashboard/admin_user_detail.html', context)
 
 
 @role_required('admin')
@@ -160,12 +223,39 @@ def admin_add_staff(request):
 
 @role_required('admin')
 def admin_orders(request):
-    orders = _paginate_queryset(
-        request,
-        Order.objects.select_related('user').order_by('-created_at'),
-        per_page=12,
-    )
-    return render(request, 'dashboard/admin_orders.html', {'orders': orders})
+    qs = Order.objects.select_related('user').order_by('-created_at')
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '')
+
+    if search:
+        qs = qs.filter(
+            Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(delivery_address__icontains=search)
+        )
+        # Allow searching by order ID if the query is numeric
+        if search.lstrip('#').isdigit():
+            qs = qs | Order.objects.filter(pk=int(search.lstrip('#'))).select_related('user')
+            qs = qs.distinct()
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+
+    orders = _paginate_queryset(request, qs, per_page=15)
+    context = {
+        'orders': orders,
+        'search': search,
+        'status_filter': status_filter,
+        'status_choices': Order.STATUS_CHOICES,
+        'pending_count': Order.objects.filter(status='pending').count(),
+        'processing_count': Order.objects.filter(status__in=['confirmed', 'processing']).count(),
+        'shipped_count': Order.objects.filter(status='shipped').count(),
+        'delivered_count': Order.objects.filter(status='delivered').count(),
+        'cancelled_count': Order.objects.filter(status='cancelled').count(),
+    }
+    return render(request, 'dashboard/admin_orders.html', context)
 
 
 @role_required('admin', 'staff')
@@ -211,12 +301,36 @@ def update_order_status(request, pk):
 @role_required('admin')
 def admin_payments(request):
     from payments.models import Payment as PaymentModel
-    payments = _paginate_queryset(
-        request,
-        PaymentModel.objects.select_related('user', 'order').order_by('-created_at'),
-        per_page=12,
-    )
-    return render(request, 'dashboard/admin_payments.html', {'payments': payments})
+    qs = PaymentModel.objects.select_related('user', 'order').order_by('-created_at')
+    search = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '')
+
+    if search:
+        qs = qs.filter(
+            Q(reference__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+
+    payments = _paginate_queryset(request, qs, per_page=15)
+    all_pay = PaymentModel.objects.all()
+    total_revenue = sum(p.amount for p in all_pay.filter(status='success'))
+    total_pending_amount = sum(p.amount for p in all_pay.filter(status='pending'))
+    context = {
+        'payments': payments,
+        'search': search,
+        'status_filter': status_filter,
+        'total_revenue': total_revenue,
+        'total_pending_amount': total_pending_amount,
+        'success_count': all_pay.filter(status='success').count(),
+        'pending_count': all_pay.filter(status='pending').count(),
+        'failed_count': all_pay.filter(status='failed').count(),
+    }
+    return render(request, 'dashboard/admin_payments.html', context)
 
 
 # ── Admin: Reports ────────────────────────────────────────────────────────────

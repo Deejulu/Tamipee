@@ -1,0 +1,220 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}User: {{ target_user.username }}{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:admin_users' %}" class="text-decoration-none">Users</a></li>
+        <li class="breadcrumb-item active">{{ target_user.username }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- LEFT: Profile Card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body text-center p-4">
+                {% if target_user.profile_picture %}
+                <img src="{{ target_user.profile_picture.url }}" class="rounded-circle mb-3 shadow" width="90" height="90" style="object-fit:cover" alt="Profile">
+                {% else %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white mx-auto mb-3 shadow"
+                     style="width:90px;height:90px;font-size:2rem;
+                     background:{% if target_user.is_superuser or target_user.role == 'admin' %}#dc3545{% elif target_user.role == 'staff' %}#f59e0b{% else %}#198754{% endif %}">
+                    {{ target_user.username|slice:":2"|upper }}
+                </div>
+                {% endif %}
+                <h5 class="fw-bold mb-0">{{ target_user.get_full_name|default:target_user.username }}</h5>
+                <div class="text-muted small mb-2">@{{ target_user.username }}</div>
+                <span class="badge rounded-pill {% if target_user.is_superuser or target_user.role == 'admin' %}bg-danger{% elif target_user.role == 'staff' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                    {% if target_user.is_superuser %}Admin &bull; Superuser{% else %}{{ target_user.get_role_display }}{% endif %}
+                </span>
+                {% if target_user.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success rounded-pill ms-1">Active</span>
+                {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill ms-1">Inactive</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contact & Account Info -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <h6 class="fw-semibold text-muted text-uppercase small mb-3" style="letter-spacing:.05em">Account Details</h6>
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex gap-2 py-2 border-bottom">
+                        <i class="bi bi-envelope text-muted mt-1"></i>
+                        <div>
+                            <div class="small text-muted">Email</div>
+                            <div class="fw-semibold small">{{ target_user.email|default:"Not provided" }}</div>
+                            {% if target_user.email_verified %}<span class="badge bg-success-subtle text-success" style="font-size:.7rem">Verified</span>{% else %}<span class="badge bg-warning-subtle text-warning" style="font-size:.7rem">Unverified</span>{% endif %}
+                        </div>
+                    </li>
+                    <li class="d-flex gap-2 py-2 border-bottom">
+                        <i class="bi bi-telephone text-muted mt-1"></i>
+                        <div>
+                            <div class="small text-muted">Phone</div>
+                            <div class="fw-semibold small">{{ target_user.phone|default:"Not provided" }}</div>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-2 py-2 border-bottom">
+                        <i class="bi bi-geo-alt text-muted mt-1"></i>
+                        <div>
+                            <div class="small text-muted">Address</div>
+                            <div class="fw-semibold small">{{ target_user.address|default:"Not provided" }}</div>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-2 py-2 border-bottom">
+                        <i class="bi bi-calendar text-muted mt-1"></i>
+                        <div>
+                            <div class="small text-muted">Joined</div>
+                            <div class="fw-semibold small">{{ target_user.date_joined|date:"d M Y, g:i a" }}</div>
+                        </div>
+                    </li>
+                    <li class="d-flex gap-2 py-2">
+                        <i class="bi bi-clock text-muted mt-1"></i>
+                        <div>
+                            <div class="small text-muted">Last Login</div>
+                            <div class="fw-semibold small">{{ target_user.last_login|date:"d M Y, g:i a"|default:"Never" }}</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Activity Summary -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <h6 class="fw-semibold text-muted text-uppercase small mb-3" style="letter-spacing:.05em">Activity Summary</h6>
+                <div class="row g-2 text-center">
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <div class="fw-bold fs-4 text-success">{{ total_orders }}</div>
+                            <div class="text-muted small">Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <div class="fw-bold fs-5 text-primary">&#8358;{{ total_spent|floatformat:0 }}</div>
+                            <div class="text-muted small">Total Spent</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Role -->
+        {% if not target_user.is_superuser %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-3">
+                <h6 class="fw-semibold text-muted text-uppercase small mb-3" style="letter-spacing:.05em">Change Role</h6>
+                <form method="post" action="{% url 'dashboard:admin_update_user_role' target_user.pk %}">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <select name="role" class="form-select form-select-sm">
+                            {% for role_value in role_choices %}
+                            <option value="{{ role_value }}" {% if target_user.role == role_value %}selected{% endif %}>{{ role_value|capfirst }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- RIGHT: Orders + Payments -->
+    <div class="col-lg-8 d-flex flex-column gap-4">
+        <!-- Recent Orders -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="section-header mb-3">
+                    <h6 class="fw-semibold mb-0"><i class="bi bi-bag-check me-2 text-success"></i>Order History</h6>
+                    <a href="{% url 'dashboard:admin_orders' %}?q={{ target_user.username }}" class="btn btn-sm btn-outline-success">All Orders &rarr;</a>
+                </div>
+                {% if user_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size:.88rem">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted fw-semibold">Order</th>
+                                <th class="text-muted fw-semibold">Amount</th>
+                                <th class="text-muted fw-semibold">Status</th>
+                                <th class="text-muted fw-semibold">Delivery</th>
+                                <th class="text-muted fw-semibold">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in user_orders %}
+                            <tr>
+                                <td><span class="fw-bold">#{{ order.pk }}</span></td>
+                                <td class="fw-semibold">&#8358;{{ order.total_amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge rounded-pill
+                                        {% if order.status == 'delivered' %}bg-success
+                                        {% elif order.status == 'pending' %}bg-warning text-dark
+                                        {% elif order.status == 'cancelled' %}bg-danger
+                                        {% elif order.status == 'shipped' %}bg-info text-dark
+                                        {% else %}bg-primary{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ order.delivery_address }}">{{ order.delivery_address }}</td>
+                                <td class="text-muted small">{{ order.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3 mb-0"><i class="bi bi-inbox d-block fs-2 mb-2 opacity-50"></i>No orders yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="section-header mb-3">
+                    <h6 class="fw-semibold mb-0"><i class="bi bi-credit-card me-2 text-primary"></i>Payment History</h6>
+                    <a href="{% url 'dashboard:admin_payments' %}?q={{ target_user.username }}" class="btn btn-sm btn-outline-primary">All Payments &rarr;</a>
+                </div>
+                {% if user_payments %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size:.88rem">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted fw-semibold">Reference</th>
+                                <th class="text-muted fw-semibold">Order</th>
+                                <th class="text-muted fw-semibold">Amount</th>
+                                <th class="text-muted fw-semibold">Status</th>
+                                <th class="text-muted fw-semibold">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in user_payments %}
+                            <tr>
+                                <td><code class="small text-muted">{{ payment.reference|truncatechars:20 }}</code></td>
+                                <td><span class="fw-bold">#{{ payment.order.pk }}</span></td>
+                                <td class="fw-semibold">&#8358;{{ payment.amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge rounded-pill {% if payment.status == 'success' %}bg-success{% elif payment.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ payment.status|title }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small">{{ payment.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-3 mb-0"><i class="bi bi-credit-card d-block fs-2 mb-2 opacity-50"></i>No payments recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

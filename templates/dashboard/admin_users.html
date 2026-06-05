@@ -4,77 +4,178 @@
 
 {% block content %}
 <div class="section-header">
-    <h5><i class="bi bi-people me-2 text-success"></i>All Users</h5>
+    <h5><i class="bi bi-people me-2 text-success"></i>User Management</h5>
     <a href="{% url 'dashboard:admin_add_staff' %}" class="btn btn-success btn-sm">
         <i class="bi bi-person-plus me-1"></i>Add Staff Member
     </a>
 </div>
 
+<!-- Role Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a href="?role=&status=" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if not role_filter and not status_filter %}border-success border-2{% endif %}">
+                <div class="fw-bold fs-4">{{ total_users }}</div>
+                <div class="text-muted small">All Users</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?role=admin" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if role_filter == 'admin' %}border-danger border-2{% endif %}">
+                <div class="fw-bold fs-4 text-danger">{{ total_admins }}</div>
+                <div class="text-muted small">Admins</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?role=staff" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if role_filter == 'staff' %}border-warning border-2{% endif %}">
+                <div class="fw-bold fs-4 text-warning">{{ total_staff }}</div>
+                <div class="text-muted small">Staff</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?role=customer" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-3 {% if role_filter == 'customer' %}border-success border-2{% endif %}">
+                <div class="fw-bold fs-4 text-success">{{ total_customers }}</div>
+                <div class="text-muted small">Customers</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Search + Filter Bar -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label small fw-semibold text-muted mb-1">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Name, username, email, phone...">
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Role</label>
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    {% for r in role_choices %}
+                    <option value="{{ r }}" {% if role_filter == r %}selected{% endif %}>{{ r|capfirst }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Any Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+                <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-secondary" title="Clear filters"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Info -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="text-muted small">
+        Showing {{ users.start_index }}–{{ users.end_index }} of {{ users.paginator.count }} user{{ users.paginator.count|pluralize }}
+        {% if search %} for &ldquo;<strong>{{ search }}</strong>&rdquo;{% endif %}
+        {% if role_filter %} &middot; role: <strong>{{ role_filter|capfirst }}</strong>{% endif %}
+        {% if status_filter %} &middot; status: <strong>{{ status_filter|capfirst }}</strong>{% endif %}
+    </span>
+</div>
+
+<!-- Users Table -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
-        <table class="table dashboard-table admin-users-table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Phone</th>
-                    <th>Joined</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td data-label="#">{{ forloop.counter }}</td>
-                    <td data-label="Username"><strong>{{ user.username }}</strong></td>
-                    <td data-label="Full Name">{{ user.get_full_name|default:"-" }}</td>
-                    <td data-label="Email">{{ user.email|default:"-" }}</td>
-                    <td data-label="Role">
-                        <span class="badge {% if user.is_superuser or user.role == 'admin' %}bg-danger{% elif user.role == 'staff' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                            {% if user.is_superuser %}Admin{% else %}{{ user.get_role_display }}{% endif %}
-                        </span>
-                        {% if user.is_superuser %}<span class="badge bg-dark ms-1">Superuser</span>{% endif %}
-                    </td>
-                    <td data-label="Phone">{{ user.phone|default:"-" }}</td>
-                    <td data-label="Joined">{{ user.date_joined|date:"d M Y" }}</td>
-                    <td data-label="Status">
-                        {% if user.is_active %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
-                    </td>
-                    <td data-label="Change Role" class="user-actions-cell">
-                        <form method="post" action="{% url 'dashboard:admin_update_user_role' user.pk %}" class="user-role-form">
-                            {% csrf_token %}
-                            <select name="role" class="form-select form-select-sm user-role-select" {% if user.is_superuser %}disabled{% endif %}>
-                                {% for role_value in role_choices %}
-                                    {% if user.is_superuser and role_value == 'admin' %}
-                                        <option value="{{ role_value }}" selected>Admin</option>
-                                    {% elif not user.is_superuser and user.role == role_value %}
-                                        <option value="{{ role_value }}" selected>{{ role_value|capfirst }}</option>
-                                    {% else %}
-                                        <option value="{{ role_value }}">{{ role_value|capfirst }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                            {% if not user.is_superuser %}
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Save</button>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:.9rem">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3 text-muted fw-semibold">#</th>
+                        <th class="text-muted fw-semibold">User</th>
+                        <th class="text-muted fw-semibold">Contact</th>
+                        <th class="text-muted fw-semibold">Role</th>
+                        <th class="text-muted fw-semibold">Joined</th>
+                        <th class="text-muted fw-semibold">Status</th>
+                        <th class="text-muted fw-semibold text-end pe-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="ps-3 text-muted">{{ user.pk }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                                     style="width:38px;height:38px;font-size:.85rem;flex-shrink:0;
+                                     background:{% if user.is_superuser or user.role == 'admin' %}#dc3545{% elif user.role == 'staff' %}#f59e0b{% else %}#198754{% endif %}">
+                                    {{ user.username|slice:":2"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+                                    <div class="text-muted small">@{{ user.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">{{ user.email|default:"—" }}</div>
+                            <div class="text-muted small">{{ user.phone|default:"—" }}</div>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill {% if user.is_superuser or user.role == 'admin' %}bg-danger{% elif user.role == 'staff' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                {% if user.is_superuser %}Admin{% else %}{{ user.get_role_display }}{% endif %}
+                            </span>
+                            {% if user.is_superuser %}<span class="badge bg-dark ms-1 rounded-pill">Superuser</span>{% endif %}
+                        </td>
+                        <td class="text-muted small">{{ user.date_joined|date:"d M Y" }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success-subtle text-success border border-success rounded-pill">Active</span>
                             {% else %}
-                                <span class="text-muted small">Locked</span>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill">Inactive</span>
                             {% endif %}
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="9" class="text-center text-muted py-4">No users found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                        <td class="text-end pe-3">
+                            <div class="d-flex justify-content-end gap-1 align-items-center">
+                                <a href="{% url 'dashboard:admin_user_detail' user.pk %}" class="btn btn-sm btn-outline-primary" title="View profile">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if not user.is_superuser %}
+                                <form method="post" action="{% url 'dashboard:admin_update_user_role' user.pk %}" class="d-flex gap-1">
+                                    {% csrf_token %}
+                                    <select name="role" class="form-select form-select-sm" style="width:auto;font-size:.8rem">
+                                        {% for role_value in role_choices %}
+                                        <option value="{{ role_value }}" {% if user.role == role_value %}selected{% endif %}>{{ role_value|capfirst }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-success" title="Save role"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted small fst-italic">Locked</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-person-x fs-2 d-block mb-2 opacity-50"></i>
+                            No users found{% if search %} matching &ldquo;{{ search }}&rdquo;{% endif %}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+    {% include 'includes/dashboard_pagination.html' with page_obj=users %}
 </div>
 {% endblock %}
