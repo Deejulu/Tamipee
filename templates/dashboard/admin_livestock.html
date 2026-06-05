@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div class="fm-chart-body">
-                <canvas id="stockChart" height="240"></canvas>
+                <div class="fm-chart-wrap"><canvas id="stockChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -96,7 +96,7 @@
                 </div>
             </div>
             <div class="fm-chart-body">
-                <canvas id="feedCostChart" height="240"></canvas>
+                <div class="fm-chart-wrap"><canvas id="feedCostChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -165,7 +165,7 @@
             </div>
             {% else %}
             <div class="fm-species-no-feed">
-                <i class="bi bi-exclamation-circle me-1"></i>No feed schedule â€” <a href="{% url 'dashboard:admin_manage_feed_form' %}">add one</a>
+                <i class="bi bi-exclamation-circle me-1"></i>No feed schedule — <a href="{% url 'dashboard:admin_manage_feed_form' %}">add one</a>
             </div>
             {% endif %}
 
@@ -207,7 +207,7 @@
 <div class="fm-empty-state">
     <i class="bi bi-grid-3x3-gap fs-1 d-block mb-3 opacity-25"></i>
     <h6>No livestock categories yet</h6>
-    <p class="text-muted small mb-3">Start by adding a category â€” e.g. Poultry, Fish, Piggery. Then add species inside each category.</p>
+    <p class="text-muted small mb-3">Start by adding a category — e.g. Poultry, Fish, Piggery. Then add species inside each category.</p>
     <a href="{% url 'dashboard:admin_manage_categories' %}" class="btn btn-success">
         <i class="bi bi-plus-circle me-2"></i>Add First Category
     </a>
@@ -234,7 +234,7 @@
                         {% for v in species.seasonal_variations.all %}
                         <div class="fm-seasonal-alert {% if v.expected_yield_change_percent >= 0 %}fm-seasonal-positive{% else %}fm-seasonal-negative{% endif %}">
                             <div class="fm-seasonal-alert-body">
-                                <div class="fw-semibold small">{{ species.name }} <span class="text-muted fw-normal">â€” {{ v.season }}</span></div>
+                                <div class="fw-semibold small">{{ species.name }} <span class="text-muted fw-normal">— {{ v.season }}</span></div>
                                 <div class="text-muted small mt-1">{{ v.production_impact|truncatewords:14 }}</div>
                             </div>
                             <span class="badge {% if v.expected_yield_change_percent >= 0 %}bg-success{% else %}bg-danger{% endif %} ms-2 flex-shrink-0">
@@ -273,7 +273,7 @@
                             <div class="fm-booster-icon"><i class="bi bi-capsule text-warning"></i></div>
                             <div class="flex-grow-1 min-width-0">
                                 <div class="fw-semibold small text-truncate">{{ b.name }}</div>
-                                <div class="text-muted small">{{ species.name }} Â· {{ b.frequency }}</div>
+                                <div class="text-muted small">{{ species.name }} &middot; {{ b.frequency }}</div>
                             </div>
                             <div class="text-success fw-bold small text-nowrap">₦{{ b.cost_per_unit }}</div>
                         </div>
@@ -318,7 +318,7 @@ if (stockLabels.length && document.getElementById('stockChart')) {
         options: {
             cutout: '62%',
             animation: false,
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: { position: 'bottom', labels: { padding: 14, font: { size: 12 } } }
@@ -347,7 +347,7 @@ if (feedLabels.length && document.getElementById('feedCostChart')) {
         },
         options: {
             animation: false,
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {

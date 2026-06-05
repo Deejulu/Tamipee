@@ -1,8 +1,577 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}Farm Management Overview{% endblock %}
 {% block nav_farm_overview %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- ─── Page Header ──────────────────────────────────────────── -->
+    <div class="section-header mb-4">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-grid-3x3-gap-fill text-success me-2"></i>Farm Management Overview</h5>
+            <p class="text-muted mb-0 mt-1" style="font-size:.875rem;">Complete view of all farm activities, schedules, and records.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                <i class="bi bi-plus-circle me-1"></i>Quick Add
+            </button>
+            <a href="{% url 'dashboard:admin_livestock' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-bar-chart-fill me-1"></i>Analytics
+            </a>
+        </div>
+    </div>
+
+    <!-- ─── KPI Strip ────────────────────────────────────────────── -->
+    <div class="fm-analytics-strip mb-4">
+        <div class="fm-analytics-item">
+            <div class="fm-analytics-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">
+                <i class="bi bi-collection"></i>
+            </div>
+            <div>
+                <div class="fm-analytics-value">{{ total_species }}</div>
+                <div class="fm-analytics-label">Species Managed</div>
+            </div>
+        </div>
+        <div class="fm-analytics-divider"></div>
+        <div class="fm-analytics-item">
+            <div class="fm-analytics-icon" style="background:linear-gradient(135deg,#10b981,#059669);">
+                <i class="bi bi-boxes"></i>
+            </div>
+            <div>
+                <div class="fm-analytics-value">{{ total_stock }}</div>
+                <div class="fm-analytics-label">Total Livestock</div>
+            </div>
+        </div>
+        <div class="fm-analytics-divider"></div>
+        <div class="fm-analytics-item">
+            <div class="fm-analytics-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="fm-analytics-value">{{ total_schedules }}</div>
+                <div class="fm-analytics-label">Feed Schedules</div>
+            </div>
+        </div>
+        <div class="fm-analytics-divider"></div>
+        <div class="fm-analytics-item">
+            <div class="fm-analytics-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <div>
+                <div class="fm-analytics-value">{{ total_boosters }}</div>
+                <div class="fm-analytics-label">Active Boosters</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Egg Production Callout ───────────────────────────────── -->
+    {% if egg_metrics.collected > 0 %}
+    <div class="fm-egg-callout mb-4">
+        <div class="fm-egg-callout-header">
+            <i class="bi bi-egg-fill me-1"></i>Egg Production — Last 30 Days
+        </div>
+        <div class="fm-egg-callout-body">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <small class="text-muted d-block">Collected</small>
+                    <strong style="font-size:1.1rem;">{{ egg_metrics.collected }}</strong>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted d-block">Saleable</small>
+                    <strong style="font-size:1.1rem;color:#16a34a;">{{ egg_metrics.saleable }}</strong>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted d-block">Damaged</small>
+                    <strong style="font-size:1.1rem;color:#dc2626;">{{ egg_metrics.damaged }}</strong>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted d-block">Trays (~30/tray)</small>
+                    <strong style="font-size:1.1rem;color:#2563eb;">{{ egg_metrics.trays }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ─── Quick Navigation Tiles ──────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <a href="{% url 'dashboard:admin_daily_log' %}" class="fm-quick-tile">
+                <span class="fm-quick-tile-icon" style="background:#dbeafe;color:#2563eb;">
+                    <i class="bi bi-calendar-day"></i>
+                </span>
+                <span>Daily Log</span>
+                <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.8rem;"></i>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <a href="{% url 'dashboard:admin_manage_categories' %}" class="fm-quick-tile">
+                <span class="fm-quick-tile-icon" style="background:#dcfce7;color:#16a34a;">
+                    <i class="bi bi-diagram-3-fill"></i>
+                </span>
+                <span>Categories &amp; Species</span>
+                <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.8rem;"></i>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <a href="{% url 'dashboard:admin_manage_feed_form' %}" class="fm-quick-tile">
+                <span class="fm-quick-tile-icon" style="background:#fef3c7;color:#d97706;">
+                    <i class="bi bi-bag-fill"></i>
+                </span>
+                <span>Feed Schedules</span>
+                <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.8rem;"></i>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <a href="{% url 'dashboard:admin_manage_boosters' %}" class="fm-quick-tile">
+                <span class="fm-quick-tile-icon" style="background:#ede9fe;color:#7c3aed;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </span>
+                <span>Growth Boosters</span>
+                <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.8rem;"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- ─── Tabbed Content ───────────────────────────────────────── -->
+    <ul class="nav nav-tabs mb-3" id="farmOverviewTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="recent-tab" data-bs-toggle="tab" data-bs-target="#recent-content" type="button" role="tab">
+                <i class="bi bi-clock-history me-1"></i>Recent Activity
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules-content" type="button" role="tab">
+                <i class="bi bi-calendar-check me-1"></i>Feed Schedules
+                <span class="badge bg-primary ms-1">{{ all_schedules.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="boosters-tab" data-bs-toggle="tab" data-bs-target="#boosters-content" type="button" role="tab">
+                <i class="bi bi-lightning-charge me-1"></i>Boosters
+                <span class="badge bg-primary ms-1">{{ all_boosters.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="seasonal-tab" data-bs-toggle="tab" data-bs-target="#seasonal-content" type="button" role="tab">
+                <i class="bi bi-cloud-sun me-1"></i>Seasonal
+                <span class="badge bg-primary ms-1">{{ all_variations.count }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="farmOverviewTabContent">
+
+        <!-- Recent Activity -->
+        <div class="tab-pane fade show active" id="recent-content" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="fm-table-header">
+                            <div>
+                                <h6 class="mb-0"><i class="bi bi-archive-fill text-warning me-1"></i>Recent Feed Consumption</h6>
+                                <small class="text-muted">Last 7 days</small>
+                            </div>
+                            <a href="{% url 'dashboard:admin_daily_log' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_feed_logs %}
+                            <div class="table-responsive">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr><th>Date</th><th>Animal</th><th>Feed Type</th><th>Bags</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in recent_feed_logs %}
+                                        <tr>
+                                            <td>{{ log.date|date:"M d" }}</td>
+                                            <td>{{ log.species.name }}</td>
+                                            <td>{{ log.feed_type }}</td>
+                                            <td><strong>{{ log.bags_consumed }}</strong></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="fm-empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>No feed logs in the last 7 days</p>
+                                <button class="btn btn-sm btn-success mt-1" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                                    <i class="bi bi-plus-circle"></i> Add Feed Log
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="fm-table-header">
+                            <div>
+                                <h6 class="mb-0"><i class="bi bi-box-seam text-success me-1"></i>Recent Production</h6>
+                                <small class="text-muted">Last 7 days</small>
+                            </div>
+                            <a href="{% url 'dashboard:admin_daily_log' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_production_logs %}
+                            <div class="table-responsive">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr><th>Date</th><th>Animal</th><th>Product</th><th>Qty</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in recent_production_logs %}
+                                        <tr>
+                                            <td>{{ log.date|date:"M d" }}</td>
+                                            <td>{{ log.species.name }}</td>
+                                            <td>{{ log.product }}</td>
+                                            <td><strong>{{ log.quantity }} {{ log.unit }}</strong></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="fm-empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>No production logs in the last 7 days</p>
+                                <button class="btn btn-sm btn-success mt-1" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                                    <i class="bi bi-plus-circle"></i> Add Production Log
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed Schedules Tab -->
+        <div class="tab-pane fade" id="schedules-content" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="fm-table-header">
+                    <div>
+                        <h6 class="mb-0"><i class="bi bi-calendar-check text-primary me-1"></i>All Feed Schedules</h6>
+                        <small class="text-muted">{{ all_schedules.count }} schedule{{ all_schedules.count|pluralize }} total</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'dashboard:admin_manage_feed_form' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Manage
+                        </a>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+                            <i class="bi bi-plus-circle"></i> Add
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if all_schedules %}
+                    <div class="table-responsive">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Species</th>
+                                    <th>Feed Type</th>
+                                    <th>Daily Qty (kg)</th>
+                                    <th>Times</th>
+                                    <th>Cost/kg</th>
+                                    <th>Daily Cost</th>
+                                    <th>Season</th>
+                                    <th class="text-center">Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in all_schedules %}
+                                <tr>
+                                    <td><strong>{{ schedule.species.name }}</strong></td>
+                                    <td>{{ schedule.feed_type }}</td>
+                                    <td>{{ schedule.daily_quantity_kg }}</td>
+                                    <td><small class="text-muted">{{ schedule.feeding_times|truncatewords:3 }}</small></td>
+                                    <td>₦{{ schedule.cost_per_kg }}</td>
+                                    <td><strong class="text-success">₦{{ schedule.daily_cost }}</strong></td>
+                                    <td><span class="badge bg-secondary">{{ schedule.get_season_display }}</span></td>
+                                    <td class="text-center">
+                                        <a href="{% url 'dashboard:admin_edit_feed' schedule.pk %}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="fm-empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>No feed schedules created yet</p>
+                        <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+                            <i class="bi bi-plus-circle"></i> Create First Schedule
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Growth Boosters Tab -->
+        <div class="tab-pane fade" id="boosters-content" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="fm-table-header">
+                    <div>
+                        <h6 class="mb-0"><i class="bi bi-lightning-charge text-warning me-1"></i>All Growth Boosters</h6>
+                        <small class="text-muted">{{ all_boosters.count }} booster{{ all_boosters.count|pluralize }} total</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'dashboard:admin_manage_boosters' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Manage
+                        </a>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addBoosterModal">
+                            <i class="bi bi-plus-circle"></i> Add
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if all_boosters %}
+                    <div class="table-responsive">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Species</th>
+                                    <th>Booster Name</th>
+                                    <th>Type</th>
+                                    <th>Dosage</th>
+                                    <th>Frequency</th>
+                                    <th>Cost/Unit</th>
+                                    <th>Expected Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booster in all_boosters %}
+                                <tr>
+                                    <td><strong>{{ booster.species.name }}</strong></td>
+                                    <td>{{ booster.name }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ booster.booster_type }}</span></td>
+                                    <td>{{ booster.dosage }}</td>
+                                    <td>{{ booster.frequency }}</td>
+                                    <td>₦{{ booster.cost_per_unit }}</td>
+                                    <td><small class="text-muted">{{ booster.expected_impact|truncatewords:8 }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="fm-empty-state">
+                        <i class="bi bi-lightning"></i>
+                        <p>No growth boosters added yet</p>
+                        <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addBoosterModal">
+                            <i class="bi bi-plus-circle"></i> Add First Booster
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Seasonal Variations Tab -->
+        <div class="tab-pane fade" id="seasonal-content" role="tabpanel">
+            <div class="card border-0 shadow-sm">
+                <div class="fm-table-header">
+                    <div>
+                        <h6 class="mb-0"><i class="bi bi-cloud-sun text-info me-1"></i>All Seasonal Variations</h6>
+                        <small class="text-muted">{{ all_variations.count }} variation{{ all_variations.count|pluralize }} total</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'dashboard:admin_manage_seasonal' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Manage
+                        </a>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSeasonalModal">
+                            <i class="bi bi-plus-circle"></i> Add
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if all_variations %}
+                    <div class="row g-3">
+                        {% for variation in all_variations %}
+                        <div class="col-md-6 col-xl-4">
+                            <div class="fm-seasonal-card">
+                                <div class="fm-seasonal-card-header">
+                                    <span><i class="bi bi-cloud-sun me-1"></i>{{ variation.species.name }}</span>
+                                    <span class="badge bg-primary">{{ variation.season }}</span>
+                                </div>
+                                <div class="fm-seasonal-card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1 fw-semibold">Impact</small>
+                                        <div style="font-size:.85rem;">{{ variation.production_impact|truncatewords:15 }}</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block mb-1 fw-semibold">Recommended Action</small>
+                                        <div style="font-size:.85rem;">{{ variation.recommended_action|truncatewords:15 }}</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                        <small class="text-muted">Yield Change:</small>
+                                        <span class="badge {% if variation.expected_yield_change_percent < 0 %}bg-danger{% else %}bg-success{% endif %}">
+                                            {% if variation.expected_yield_change_percent > 0 %}+{% endif %}{{ variation.expected_yield_change_percent }}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="fm-empty-state">
+                        <i class="bi bi-cloud-sun"></i>
+                        <p>No seasonal variations recorded yet</p>
+                        <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addSeasonalModal">
+                            <i class="bi bi-plus-circle"></i> Add First Variation
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Quick Add Modal ──────────────────────────────────────────── -->
+<div class="modal fade" id="quickAddModal" tabindex="-1" aria-labelledby="quickAddModalLabel" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="quickAddModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Quick Add Record
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills mb-3" id="quickAddTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="quick-feed-tab" data-bs-toggle="pill" data-bs-target="#quick-feed" type="button">
+                            <i class="bi bi-archive me-1"></i>Feed Log
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="quick-production-tab" data-bs-toggle="pill" data-bs-target="#quick-production" type="button">
+                            <i class="bi bi-box-seam me-1"></i>Production Log
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="quickAddTabContent">
+                    <div class="tab-pane fade show active" id="quick-feed" role="tabpanel">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="feed">
+                            {{ feed_form|crispy }}
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>Save Feed Log
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="quick-production" role="tabpanel">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="production">
+                            {{ production_form|crispy }}
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>Save Production Log
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Add Schedule Modal ──────────────────────────────────────── -->
+<div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleLabel" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addScheduleLabel">
+                    <i class="bi bi-calendar-check me-2"></i>Add Feed Schedule
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="schedule">
+                    {{ feed_schedule_form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Create Schedule
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Add Booster Modal ───────────────────────────────────────── -->
+<div class="modal fade" id="addBoosterModal" tabindex="-1" aria-labelledby="addBoosterLabel" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBoosterLabel">
+                    <i class="bi bi-lightning-charge me-2"></i>Add Growth Booster
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="booster">
+                    {{ booster_form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Add Booster
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Add Seasonal Variation Modal ───────────────────────────── -->
+<div class="modal fade" id="addSeasonalModal" tabindex="-1" aria-labelledby="addSeasonalLabel" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSeasonalLabel">
+                    <i class="bi bi-cloud-sun me-2"></i>Add Seasonal Variation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="seasonal">
+                    {{ seasonal_form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Save Variation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">

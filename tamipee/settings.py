@@ -78,8 +78,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'accounts.middleware.SessionIdleTimeoutMiddleware',  # Session timeout after 30 min inactivity
     'django.contrib.messages.middleware.MessageMiddleware',
+    'accounts.middleware.SessionIdleTimeoutMiddleware',  # Session timeout after 30 min inactivity (must be after MessageMiddleware)
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
