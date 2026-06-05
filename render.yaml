@@ -3,5 +3,5 @@ services:
     name: tamipee
     env: python
     buildCommand: pip install -r requirements.txt
-    releaseCommand: python manage.py migrate
+    releaseCommand: python manage.py migrate && python manage.py create_superuser_from_env
     startCommand: bash start.sh
