@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
+    'storages',
     # Local apps
     'accounts',
     'livestock',
@@ -126,9 +127,10 @@ DATABASES = {
 }
 
 # Use PostgreSQL in production (Render provides DATABASE_URL)
-if 'DATABASE_URL' in os.environ:
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
     DATABASES['default'] = dj_database_url.parse(
-        os.environ.get('DATABASE_URL'),
+        DATABASE_URL,
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -177,6 +179,24 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Storage backend configuration
+# Use local media storage in development and switch to S3-compatible storage in production
+USE_S3_STORAGE = env_bool('USE_S3_STORAGE', False)
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') or os.getenv('SUPABASE_STORAGE_URL')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_SIGNATURE_VERSION = os.getenv('AWS_S3_SIGNATURE_VERSION', 's3v4')
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+
+if USE_S3_STORAGE and AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL and AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    MEDIA_URL = os.getenv('MEDIA_URL', MEDIA_URL)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
