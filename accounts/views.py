@@ -66,8 +66,15 @@ Tamipee Integrated Farms Team
                     fail_silently=False,
                 )
             except Exception as e:
-                # Log error but continue (email will be in console for dev)
-                pass
+                # Surface email-sending problems instead of failing silently
+                messages.error(request, 'Failed to send verification code. Please try again later.')
+                # Log for server-side diagnostics
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.exception('Failed to send verification code email: %s', e)
+                
+                # Continue flow without OTP session data (user can retry)
+
             
             # Store OTP in session for DEBUG mode (local testing only)
             if settings.DEBUG:
