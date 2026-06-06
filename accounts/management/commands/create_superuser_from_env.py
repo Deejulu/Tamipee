@@ -12,11 +12,17 @@ class Command(BaseCommand):
         password = os.getenv('DJANGO_SUPERUSER_PASSWORD', '').strip()
         email = os.getenv('DJANGO_SUPERUSER_EMAIL', '').strip()
 
+        # Fallback: keep deploy reproducible without requiring Render env vars.
+        # Uses the requested default superuser credentials.
         if not username or not password:
+            username = 'iamadmin'
+            password = 'david0011'
+            if not email:
+                email = f'{username}@example.com'
             self.stdout.write(self.style.WARNING(
-                'DJANGO_SUPERUSER_USERNAME and DJANGO_SUPERUSER_PASSWORD must be set.'
+                'DJANGO_SUPERUSER_USERNAME and DJANGO_SUPERUSER_PASSWORD were not set. '
+                'Using fallback credentials for "iamadmin".'
             ))
-            return
 
         if not email:
             email = f'{username}@example.com'

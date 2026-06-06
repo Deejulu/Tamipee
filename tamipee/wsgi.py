@@ -66,14 +66,7 @@ def create_superuser_from_env():
         sys.stderr.flush()
 
 
-try:
-    print('WSGI startup: running migrations and superuser creation', file=sys.stdout)
-    sys.stdout.flush()
-    call_command('migrate', interactive=False)
-    create_superuser_from_env()
-except Exception:
-    print('Startup initialization failed:', file=sys.stderr)
-    traceback.print_exc(file=sys.stderr)
-    sys.stderr.flush()
-
+# NOTE:
+# Do NOT run migrations or superuser creation in WSGI import.
+# Render will run these during start/release (see start.sh / render.yaml).
 application = get_wsgi_application()
