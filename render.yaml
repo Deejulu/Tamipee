@@ -2,7 +2,7 @@ services:
   - type: web
     name: tamipee
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear
     releaseCommand: python manage.py migrate && python manage.py create_superuser_from_env
     startCommand: bash start.sh
 
