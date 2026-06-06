@@ -11,3 +11,5 @@ django-storages[boto3]==1.14.0
 psycopg[binary]==3.2.13
 dj-database-url==2.1.0
 python-dotenv==1.0.0
+reportlab
+
