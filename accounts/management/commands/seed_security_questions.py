@@ -9,11 +9,21 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from accounts.models import SecurityQuestion
 
+        # Keep questions easy to remember and non-sensitive.
+        # These are used for account recovery / security question selection.
         questions = [
             'What was the name of your first school?',
             'What is the name of your favorite teacher?',
             'What is the city where you were born?',
+            'What is the name of your favorite book?',
+            'What is the name of your favorite movie?',
+            'What is the name of the street you grew up on?',
+            'What is the name of your first pet?',
+            'What is the name of your best friend from childhood?',
+            'What is the name of the town where you grew up?',
+            'What is the name of your favorite hobby?',
         ]
+
 
         created = 0
         for q in questions:
