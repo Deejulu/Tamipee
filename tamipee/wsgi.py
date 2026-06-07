@@ -18,8 +18,19 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tamipee.settings')
 
+def _log_startup_diagnostics():
+    # settings isn't loaded yet; just print envs
+    print('WSGI startup: diagnostics', file=sys.stdout)
+    print(f"  DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')!r}", file=sys.stdout)
+    sys.stdout.flush()
+
+
+_log_startup_diagnostics()
+
 
 def create_superuser_from_env():
+
+
     username = os.getenv('DJANGO_SUPERUSER_USERNAME', '').strip()
     password = os.getenv('DJANGO_SUPERUSER_PASSWORD', '').strip()
     email = os.getenv('DJANGO_SUPERUSER_EMAIL', '').strip()

@@ -20,8 +20,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from dashboard import views as dashboard_views
 
+def health_check(request):
+    from django.http import HttpResponse
+    return HttpResponse('OK')
+
+
 urlpatterns = [
+    path('health/', health_check),
     path('admin/', admin.site.urls),
+
     path('', include('store.urls')),
     path('accounts/', include('accounts.urls')),
     path('livestock/', include('livestock.urls')),
