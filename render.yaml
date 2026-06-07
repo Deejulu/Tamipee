@@ -8,5 +8,4 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: tamipee.settings
     
-    releaseCommand: bash -lc "python manage.py collectstatic --noinput --clear --verbosity 2 && python manage.py migrate && python manage.py create_superuser_from_env && python manage.py seed_security_questions"
-    startCommand: bash -lc "gunicorn tamipee.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: bash start.sh
