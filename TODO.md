@@ -1,8 +1,8 @@
 # TODO
 
-## Render deployment fix (tamipee)
-- [ ] Reorder `start.sh` to run `collectstatic` earlier and ensure it fails loudly if `STATIC_ROOT` is missing after collection.
-- [ ] Simplify `render.yaml` to remove redundant `releaseCommand` steps that are already executed in `start.sh`.
-- [x] Redeploy and verify logs: no WhiteNoise `No directory at ... staticfiles/` warning and service stays up.
-
+- [x] Inspect current static/CSS loading setup (templates, settings, start.sh)
+- [x] Fix broken `start.sh` (remove merge-conflict markers) to make `collectstatic` + verification deterministic
+- [ ] Redeploy to Render
+- [ ] Verify CSS loads on hosted site (check browser Network tab for `/static/.../main*.css`)
+- [ ] If still failing, inspect Render logs for `collectstatic` output and WhiteNoise/STATICFILES_STORAGE behavior
 
