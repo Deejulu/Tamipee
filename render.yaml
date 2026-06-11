@@ -2,10 +2,13 @@ services:
   - type: web
     name: tamipee
     env: python
-    buildCommand: pip install -r requirements.txt
+    # IMPORTANT: run collectstatic during build so WhiteNoise has STATIC_ROOT available at runtime
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear
 
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: tamipee.settings
-    
+
+    # startCommand should not re-collect static (keeps startup faster and prevents race conditions)
     startCommand: bash start.sh
+
