@@ -67,7 +67,6 @@ Tamipee Integrated Farms Team
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     fail_silently=False,
-                    timeout=10,  # 10 second timeout to prevent worker hangs
                 )
             except Exception as e:
                 # Log email-sending problems but continue registration flow
@@ -687,7 +686,6 @@ Tamipee Integrated Farms Team
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
-            timeout=10,  # 10 second timeout to prevent worker hangs
         )
         
         # Different success messages for DEBUG vs production
