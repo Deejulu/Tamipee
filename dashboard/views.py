@@ -221,7 +221,11 @@ def admin_update_user_role(request, pk):
 
 @role_required('admin')
 def admin_delete_user(request, pk):
-    user_to_delete = get_object_or_404(CustomUser, pk=pk)
+    try:
+        user_to_delete = CustomUser.objects.get(pk=pk)
+    except CustomUser.DoesNotExist:
+        messages.warning(request, 'User not found. It may have already been deleted.')
+        return redirect('dashboard:admin_users')
 
     # Prevent deleting superusers to avoid locking yourself out.
     if user_to_delete.is_superuser:
