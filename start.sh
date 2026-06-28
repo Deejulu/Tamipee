@@ -106,6 +106,25 @@ try:
     )[0][4][0]
 except socket.gaierror as exc:
     print(f"ERROR: Unable to resolve IPv4 for {parsed.hostname}: {exc}", file=sys.stderr)
+
+    # Detect Supabase direct host format: db.<project_ref>.supabase.co
+    parts = parsed.hostname.split('.')
+    if len(parts) >= 4 and parts[0] == 'db' and parts[-2:] == ['supabase', 'co']:
+        project_ref = parts[1]
+        print("", file=sys.stderr)
+        print("This Supabase direct DB host is IPv6-only (AAAA) and Render requires IPv4.", file=sys.stderr)
+        print("Use Supabase CONNECTION POOLER instead (IPv4):", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Set Render DATABASE_URL to:", file=sys.stderr)
+        print(
+            f"postgresql://postgres.{project_ref}:<URL_ENCODED_PASSWORD>@<POOLER_HOST>:6543/postgres?sslmode=require",
+            file=sys.stderr,
+        )
+        print("", file=sys.stderr)
+        print("Notes:", file=sys.stderr)
+        print(f"- Username must be: postgres.{project_ref}", file=sys.stderr)
+        print("- Get <POOLER_HOST> from Supabase: Project Settings -> Database -> Connection pooling -> URI", file=sys.stderr)
+        print("- Keep password URL-encoded (e.g. @ -> %40)", file=sys.stderr)
     sys.exit(3)
 
 userinfo = ""
