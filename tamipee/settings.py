@@ -149,36 +149,47 @@ if DATABASE_URL:
         conn_health_checks=True,
     )
     
-    # Force IPv4 connection (Render doesn't support IPv6)
-    # Add connection options to psycopg to prefer IPv4
-    if 'OPTIONS' not in DATABASES['default']:
-        DATABASES['default']['OPTIONS'] = {}
-    
-    # Force SSL mode if not already set
-    if 'sslmode' not in DATABASES['default'].get('OPTIONS', {}):
-        DATABASES['default']['OPTIONS']['sslmode'] = 'require'
-    
-    # Add connect_timeout to fail faster if connection issues
-    DATABASES['default']['OPTIONS']['connect_timeout'] = 10
-    
-    # Force IPv4 by setting host to IPv4-resolved address
-    # This tells psycopg to use getaddrinfo with AF_INET (IPv4 only)
+    # CRITICAL FIX: Force IPv4 connection (Render doesn't support IPv6)
+    # psycopg will use 'hostaddr' parameter to bypass DNS and connect directly to IPv4
     import socket
     original_host = DATABASES['default'].get('HOST', '')
+    
     if original_host:
         try:
-            # Resolve hostname to IPv4 address only
+            # Resolve hostname to IPv4 address only (AF_INET = IPv4 only)
             ipv4_address = socket.getaddrinfo(
                 original_host, 
                 None, 
                 socket.AF_INET,  # Force IPv4
                 socket.SOCK_STREAM
             )[0][4][0]
-            DATABASES['default']['HOST'] = ipv4_address
-            print(f"✓ Resolved {original_host} to IPv4: {ipv4_address}")
+            
+            # Use 'hostaddr' to force psycopg to connect to this exact IP
+            # This bypasses psycopg's internal DNS resolution entirely
+            if 'OPTIONS' not in DATABASES['default']:
+                DATABASES['default']['OPTIONS'] = {}
+            
+            DATABASES['default']['OPTIONS']['hostaddr'] = ipv4_address
+            
+            # Keep original hostname for SSL certificate verification
+            # (hostaddr tells psycopg WHERE to connect, host is for SSL SNI)
+            DATABASES['default']['HOST'] = original_host
+            
+            print(f"✓ Forced IPv4 connection: {original_host} → {ipv4_address}")
+            
         except socket.gaierror as e:
-            print(f"⚠ Could not resolve {original_host} to IPv4: {e}")
-            print(f"  Keeping original host, connection may fail if IPv6 is attempted")
+            print(f"⚠ WARNING: Could not resolve {original_host} to IPv4: {e}")
+            print(f"  Connection will likely fail with 'Network is unreachable' error")
+    
+    # Ensure SSL mode and timeout are set
+    if 'OPTIONS' not in DATABASES['default']:
+        DATABASES['default']['OPTIONS'] = {}
+    
+    if 'sslmode' not in DATABASES['default']['OPTIONS']:
+        DATABASES['default']['OPTIONS']['sslmode'] = 'require'
+    
+    if 'connect_timeout' not in DATABASES['default']['OPTIONS']:
+        DATABASES['default']['OPTIONS']['connect_timeout'] = 10
 
 
 # Password validation
