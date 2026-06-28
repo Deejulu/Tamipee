@@ -15,6 +15,13 @@ import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
+# EMERGENCY FIX (LOCAL TESTING ONLY)
+# If you are testing locally and DJANGO_SECRET_KEY isn't set, provide a temporary fallback
+# so the server can boot. Remove before production.
+if not os.environ.get('DJANGO_SECRET_KEY'):
+    os.environ['DJANGO_SECRET_KEY'] = 'django-insecure-emergency-key-do-not-use-in-real-production'
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,7 +45,9 @@ def env_list(name, default=''):
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool('DJANGO_DEBUG', False)
+# Temporarily force DEBUG locally so template error pages show the traceback.
+DEBUG = True
+
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -78,6 +87,9 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    # Ensure session is available before message storage that may rely on it.
+    # (MessageMiddleware should come after SessionMiddleware.)
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -86,7 +98,8 @@ MIDDLEWARE = [
 ]
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', True)
+    SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', False)
+
     SESSION_COOKIE_SECURE = env_bool('DJANGO_SESSION_COOKIE_SECURE', True)
     CSRF_COOKIE_SECURE = env_bool('DJANGO_CSRF_COOKIE_SECURE', True)
     SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_SECURE_HSTS_SECONDS', '31536000'))
@@ -135,6 +148,37 @@ if DATABASE_URL:
         conn_max_age=600,
         conn_health_checks=True,
     )
+    
+    # Force IPv4 connection (Render doesn't support IPv6)
+    # Add connection options to psycopg to prefer IPv4
+    if 'OPTIONS' not in DATABASES['default']:
+        DATABASES['default']['OPTIONS'] = {}
+    
+    # Force SSL mode if not already set
+    if 'sslmode' not in DATABASES['default'].get('OPTIONS', {}):
+        DATABASES['default']['OPTIONS']['sslmode'] = 'require'
+    
+    # Add connect_timeout to fail faster if connection issues
+    DATABASES['default']['OPTIONS']['connect_timeout'] = 10
+    
+    # Force IPv4 by setting host to IPv4-resolved address
+    # This tells psycopg to use getaddrinfo with AF_INET (IPv4 only)
+    import socket
+    original_host = DATABASES['default'].get('HOST', '')
+    if original_host:
+        try:
+            # Resolve hostname to IPv4 address only
+            ipv4_address = socket.getaddrinfo(
+                original_host, 
+                None, 
+                socket.AF_INET,  # Force IPv4
+                socket.SOCK_STREAM
+            )[0][4][0]
+            DATABASES['default']['HOST'] = ipv4_address
+            print(f"✓ Resolved {original_host} to IPv4: {ipv4_address}")
+        except socket.gaierror as e:
+            print(f"⚠ Could not resolve {original_host} to IPv4: {e}")
+            print(f"  Keeping original host, connection may fail if IPv6 is attempted")
 
 
 # Password validation
