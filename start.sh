@@ -5,6 +5,81 @@ echo "--- start.sh diagnostics ---"
 echo "PWD=$(pwd)"
 echo "DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-<unset>}"
 
+# Validate DATABASE_URL before proceeding
+if [ -z "${DATABASE_URL:-}" ]; then
+    echo "ERROR: DATABASE_URL environment variable is not set!"
+    echo "Please set DATABASE_URL in your Render dashboard."
+    exit 1
+fi
+
+# Check DATABASE_URL format for common Supabase issues
+echo "Validating DATABASE_URL format..."
+python - <<'PY'
+import os
+import sys
+from urllib.parse import urlparse
+
+db_url = os.getenv("DATABASE_URL", "")
+if not db_url:
+    print("ERROR: DATABASE_URL is empty")
+    sys.exit(1)
+
+try:
+    parsed = urlparse(db_url)
+    
+    # Basic validation
+    if parsed.scheme not in ["postgres", "postgresql"]:
+        print(f"ERROR: Invalid DATABASE_URL scheme '{parsed.scheme}'. Expected 'postgresql' or 'postgres'.")
+        sys.exit(1)
+    
+    if not parsed.hostname:
+        print("ERROR: DATABASE_URL missing hostname")
+        sys.exit(1)
+    
+    if not parsed.username:
+        print("ERROR: DATABASE_URL missing username")
+        sys.exit(1)
+    
+    if not parsed.password:
+        print("ERROR: DATABASE_URL missing password")
+        sys.exit(1)
+    
+    # Supabase-specific validation
+    if "supabase.com" in parsed.hostname:
+        if "pooler.supabase.com" in parsed.hostname:
+            # Pooler format: postgres.[PROJECT_REF] as username
+            if not parsed.username.startswith("postgres."):
+                print(f"ERROR: Supabase pooler connection requires username format 'postgres.[PROJECT_REF]'")
+                print(f"Current username: '{parsed.username}'")
+                print("")
+                print("CORRECT FORMAT (Pooler):")
+                print("postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres")
+                print("")
+                print("OR use Direct Connection (recommended for Django):")
+                print("postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres")
+                sys.exit(1)
+        elif ".supabase.co" in parsed.hostname:
+            # Direct connection: just 'postgres' as username
+            if parsed.username != "postgres":
+                print(f"WARNING: Supabase direct connection typically uses 'postgres' as username")
+                print(f"Current username: '{parsed.username}'")
+    
+    print(f"✓ DATABASE_URL validation passed")
+    print(f"  Host: {parsed.hostname}")
+    print(f"  Port: {parsed.port or 'default'}")
+    print(f"  User: {parsed.username}")
+    print(f"  Database: {parsed.path.lstrip('/')}")
+    
+except Exception as e:
+    print(f"ERROR: Failed to parse DATABASE_URL: {e}")
+    sys.exit(1)
+PY
+
+if [ $? -ne 0 ]; then
+    echo "DATABASE_URL validation failed. Please fix the connection string in Render dashboard."
+    exit 1
+fi
+
 python -c "import os; from django.conf import settings; import pathlib; print('DJANGO_SETTINGS_MODULE from env=', os.getenv('DJANGO_SETTINGS_MODULE')); print('STATIC_ROOT=', settings.STATIC_ROOT); print('STATIC_ROOT exists before collectstatic:', pathlib.Path(settings.STATIC_ROOT).exists())" || true
 
 echo "--- start.sh filesystem diagnostics (before collectstatic) ---"

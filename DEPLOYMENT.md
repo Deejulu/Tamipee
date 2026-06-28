@@ -58,9 +58,11 @@ git status
 # If it does, run: git rm --cached .env
 ```
 
-## Part 2: Set Up Render PostgreSQL Database
+## Part 2: Set Up Database (Choose ONE Option)
 
-### 2.1 Create Database
+### Option A: Render PostgreSQL (Recommended for Simplicity)
+
+#### 2A.1 Create Database
 
 1. Go to https://dashboard.render.com
 2. Click **New +** → **PostgreSQL**
@@ -73,11 +75,54 @@ git status
 4. Click **Create Database**
 5. Wait for "Available" status (may take 1-2 minutes)
 
-### 2.2 Copy Database URL
+#### 2A.2 Copy Database URL
 
 1. In your database dashboard, find **Internal Database URL**
 2. It looks like: `postgresql://user:password@host/database`
-3. **Copy this URL** - you'll need it in the next step
+3. **Copy this entire URL** - you'll use it as-is in Part 3
+
+### Option B: Supabase PostgreSQL
+
+#### 2B.1 Create Supabase Project
+
+1. Go to https://supabase.com/dashboard
+2. Click **New project**
+3. Configure:
+   - **Name**: `tamipee-farms`
+   - **Database Password**: Generate a strong password (save it!)
+   - **Region**: Choose closest to your target audience
+   - **Plan**: Free tier available
+4. Click **Create new project**
+5. Wait for project setup to complete
+
+#### 2B.2 Get Connection String (IMPORTANT: Use Direct Connection)
+
+1. In Supabase dashboard, go to **Project Settings** → **Database**
+2. Scroll to **Connection string** section
+3. Select **URI** tab
+4. **IMPORTANT**: Use the **Direct Connection** string, NOT the Pooler
+5. Copy the connection string that looks like:
+   ```
+   postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+   ```
+6. Replace `[YOUR-PASSWORD]` with your actual database password
+7. If password has special characters (`@`, `:`, `/`, `%`, `#`), URL-encode them:
+   - `@` → `%40`
+   - `:` → `%3A`
+   - `/` → `%2F`
+   - `%` → `%25`
+   - `#` → `%23`
+
+**Example with special chars**:
+- Password: `MyP@ss:123`
+- Encoded: `MyP%40ss%3A123`
+- Full URL: `postgresql://postgres:MyP%40ss%3A123@db.abc123xyz.supabase.co:5432/postgres`
+
+**⚠️ Common Mistakes to Avoid**:
+- ❌ Don't use the Pooler connection (it has compatibility issues with Django)
+- ❌ Don't forget to replace `[YOUR-PASSWORD]` with actual password
+- ❌ Don't add quotes around the URL in Render
+- ✅ Use Direct Connection format shown above
 
 ## Part 3: Deploy Web Service
 
@@ -113,8 +158,12 @@ DJANGO_SECRET_KEY=<GENERATE_NEW_KEY_SEE_BELOW>
 DJANGO_ALLOWED_HOSTS=tamipee-farms.onrender.com
 DJANGO_CSRF_TRUSTED_ORIGINS=https://tamipee-farms.onrender.com
 
-# Database (paste the Internal Database URL from step 2.2)
-DATABASE_URL=postgresql://tamipee_user:password@host/tamipee_db
+# Database (paste the connection URL from Part 2)
+# For Render PostgreSQL: Use Internal Database URL from step 2A.2
+# For Supabase: Use Direct Connection URL from step 2B.2
+# Example Render: postgresql://tamipee_user:password@host/tamipee_db
+# Example Supabase: postgresql://postgres:password@db.projectref.supabase.co:5432/postgres
+DATABASE_URL=<PASTE_YOUR_DATABASE_URL_HERE>
 
 # Paystack (LIVE KEYS - get from dashboard.paystack.com)
 PAYSTACK_PUBLIC_KEY=pk_live_your_actual_live_key_here
@@ -227,7 +276,106 @@ To remove sample data later:
 python manage.py delete_sample
 ```
 
-## Part 5: Custom Domain (Optional)
+## Part 5: Troubleshooting Common Deployment Issues
+
+### Issue: "tenant/user postgres.XXXXX not found" (Supabase)
+
+**Error message**:
+```
+django.db.utils.OperationalError: connection failed: FATAL: (ENOTFOUND) tenant/user postgres.lzsimijosxbarnstgkyb not found
+```
+
+**Cause**: You're using the Supabase **Pooler** connection string instead of the **Direct** connection string, or the connection format is incorrect.
+
+**Fix**:
+1. Go to Supabase Dashboard → Project Settings → Database
+2. Under "Connection string", select **URI** tab
+3. **Copy the Direct Connection string** (NOT Pooler):
+   ```
+   postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+   ```
+4. Replace `[YOUR-PASSWORD]` with your actual database password
+5. If password contains special characters, URL-encode them:
+   - `@` → `%40`, `:` → `%3A`, `/` → `%2F`, `%` → `%25`, `#` → `%23`
+6. In Render Dashboard:
+   - Go to your web service → Environment
+   - Update `DATABASE_URL` with the corrected string
+   - Click **Save Changes**
+7. Render will auto-deploy; monitor logs for validation success
+
+**Verification**: After redeployment, you should see in logs:
+```
+✓ DATABASE_URL validation passed
+  Host: db.[PROJECT-REF].supabase.co
+  Port: 5432
+  User: postgres
+```
+
+### Issue: "DATABASE_URL is not set"
+
+**Cause**: Environment variable missing or empty.
+
+**Fix**:
+1. Render Dashboard → Your web service → Environment
+2. Add environment variable:
+   - **Key**: `DATABASE_URL`
+   - **Value**: Your database connection string (no quotes)
+3. Save and redeploy
+
+### Issue: Static files (CSS/JS) not loading
+
+**Cause**: `collectstatic` failed or `STATIC_ROOT` misconfigured.
+
+**Fix**:
+1. Check logs for `collectstatic` errors
+2. Verify `render.yaml` has:
+   ```yaml
+   buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput --clear
+   ```
+3. Ensure `DJANGO_SETTINGS_MODULE=tamipee.settings` in environment variables
+4. Trigger manual deploy
+
+### Issue: Admin can't log in after deployment
+
+**Cause**: Superuser not created or database is empty.
+
+**Fix** (requires paid Render plan for shell access):
+```bash
+python manage.py createsuperuser
+```
+
+**Alternative** (via environment variable):
+Add these to Render environment variables:
+```
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_EMAIL=admin@tamipeefarms.com
+DJANGO_SUPERUSER_PASSWORD=your_secure_password
+```
+
+Then add to `start.sh` after migrations:
+```bash
+python manage.py createsuperuser --noinput || true
+```
+
+### Issue: "DisallowedHost" error
+
+**Cause**: Your domain not in `ALLOWED_HOSTS`.
+
+**Fix**:
+Update environment variable:
+```
+DJANGO_ALLOWED_HOSTS=yourapp.onrender.com,www.yourdomain.com,yourdomain.com
+```
+
+### Getting Help
+
+If errors persist:
+1. Check Render logs: Dashboard → Your service → Logs
+2. Look for the specific error message
+3. Verify all environment variables are set correctly
+4. Ensure `DATABASE_URL` passes validation (check logs for ✓ mark)
+
+## Part 6: Custom Domain (Optional)
 
 ### 5.1 Add Custom Domain in Render
 
