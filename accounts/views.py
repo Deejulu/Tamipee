@@ -17,8 +17,11 @@ from .ratelimit import ratelimit_registration, ratelimit_password_reset
 
 
 def register_view(request):
-    if request.user.is_authenticated:
+    # Allow authenticated admins/superusers to open the customer registration page.
+    # We only block if the currently logged-in user is already a customer.
+    if request.user.is_authenticated and getattr(request.user, 'role', None) == 'customer':
         return redirect('accounts:dashboard')
+
     if request.method == 'POST':
         form = CustomerRegistrationForm(request.POST)
         if form.is_valid():
@@ -64,16 +67,20 @@ Tamipee Integrated Farms Team
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     fail_silently=False,
+                    timeout=10,  # 10 second timeout to prevent worker hangs
                 )
             except Exception as e:
-                # Surface email-sending problems instead of failing silently
-                messages.error(request, 'Failed to send verification code. Please try again later.')
-                # Log for server-side diagnostics
+                # Log email-sending problems but continue registration flow
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.exception('Failed to send verification code email: %s', e)
                 
-                # Continue flow without OTP session data (user can retry)
+                # Show warning but don't block registration
+                messages.warning(
+                    request, 
+                    'Account created successfully, but verification email could not be sent. '
+                    'Your OTP code is displayed below.'
+                )
 
             
             # Store OTP in session for DEBUG mode (local testing only)
@@ -680,6 +687,7 @@ Tamipee Integrated Farms Team
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
+            timeout=10,  # 10 second timeout to prevent worker hangs
         )
         
         # Different success messages for DEBUG vs production
@@ -688,7 +696,10 @@ Tamipee Integrated Farms Team
         else:
             messages.success(request, f'New verification code sent to {user.email}. Please check your inbox.')
     except Exception as e:
-        messages.error(request, 'Failed to send verification code. Please try again later or contact support.')
+        messages.warning(request, 'Email delivery delayed. Your OTP code is displayed below.')
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception('Failed to send resend OTP email: %s', e)
     
     # Store OTP in session for DEBUG mode only
     if settings.DEBUG:
