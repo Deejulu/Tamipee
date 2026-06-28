@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from accounts.models import CustomUser
-from accounts.forms import StaffRegistrationForm
+from accounts.forms import StaffRegistrationForm, AdminCustomerRegistrationForm
 from accounts.decorators import role_required
 from livestock.models import LivestockCategory, LivestockSpecies, FeedSchedule, GrowthBooster, SeasonalVariation, DailyFeedLog, DailyProductionLog
 from livestock.forms import LivestockCategoryForm, LivestockSpeciesForm, FeedScheduleForm, GrowthBoosterForm, SeasonalVariationForm, DailyFeedLogForm, DailyProductionLogForm
@@ -34,18 +34,28 @@ def _build_egg_metrics(logs):
     collected = 0
     damaged = 0
     saleable = 0
+
     for log in logs:
-        if log.egg_count is None:
+        # Only treat rows as "egg logs" when egg_count is present.
+        if getattr(log, 'egg_count', None) is None:
             continue
-        collected += log.egg_count
-        damaged += log.damaged_count
-        saleable += log.saleable_quantity
+
+        egg_count = log.egg_count or 0
+        damaged_count = getattr(log, 'damaged_count', 0) or 0
+
+        collected += egg_count
+        damaged += damaged_count
+
+        # saleable_quantity is a @property; still guard just in case.
+        saleable += getattr(log, 'saleable_quantity', 0) or 0
+
     return {
         'collected': collected,
         'damaged': damaged,
         'saleable': saleable,
         'trays': round(saleable / 30, 1) if saleable else 0,
     }
+
 
 
 def _paginate_queryset(request, queryset, per_page=12):
@@ -210,6 +220,29 @@ def admin_update_user_role(request, pk):
 
 
 @role_required('admin')
+def admin_delete_user(request, pk):
+    user_to_delete = get_object_or_404(CustomUser, pk=pk)
+
+    # Prevent deleting superusers to avoid locking yourself out.
+    if user_to_delete.is_superuser:
+        messages.error(request, 'You cannot delete a superuser.')
+        return redirect('dashboard:admin_users')
+
+    if request.method != 'POST':
+        return redirect('dashboard:admin_users')
+
+    # Optional safety: prevent non-superusers from deleting other admins.
+    if user_to_delete.role == 'admin' and not request.user.is_superuser:
+        messages.error(request, 'You cannot delete this admin user.')
+        return redirect('dashboard:admin_users')
+
+    user_to_delete.delete()
+    messages.success(request, f'User {user_to_delete.username} deleted successfully.')
+    return redirect('dashboard:admin_users')
+
+
+
+@role_required('admin')
 def admin_add_staff(request):
     form = StaffRegistrationForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -217,6 +250,16 @@ def admin_add_staff(request):
         messages.success(request, 'Staff account created successfully.')
         return redirect('dashboard:admin_users')
     return render(request, 'dashboard/admin_add_staff.html', {'form': form})
+
+
+@role_required('admin')
+def admin_add_customer(request):
+    form = AdminCustomerRegistrationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Customer account created successfully (no email required).')
+        return redirect('dashboard:admin_users')
+    return render(request, 'dashboard/admin_add_customer.html', {'form': form})
 
 
 # ── Admin: Order Management ───────────────────────────────────────────────────

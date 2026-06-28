@@ -1,8 +1,10 @@
 # TODO
 
-- [x] Inspect current static/CSS loading setup (templates, settings, start.sh)
-- [x] Fix broken `start.sh` (remove merge-conflict markers) to make `collectstatic` + verification deterministic
-- [ ] Redeploy to Render
-- [ ] Verify CSS loads on hosted site (check browser Network tab for `/static/.../main*.css`)
-- [ ] If still failing, inspect Render logs for `collectstatic` output and WhiteNoise/STATICFILES_STORAGE behavior
+## Banner duplication fix
+- [x] Identify banner source (“Farm Fresh. Every Day.”) as DB banner with no image
+- [x] Update `templates/store/home.html` so carousel caption overlay only renders when `banner.image` exists
+
+## Farm overview 500 fix
+- [ ] Repair `templates/dashboard/admin_farm_overview.html` (file appears to contain duplicated/pasted template content leading to 500)
+- [ ] Re-test `/dashboard/admin/farm-overview/`
 

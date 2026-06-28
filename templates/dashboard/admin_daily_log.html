@@ -320,8 +320,10 @@
                                 <td data-label="Species" class="d-none d-md-table-cell"><span class="badge bg-success-subtle text-success">{{ log.species.name }}</span></td>
                                 <td data-label="Product" class="d-none d-sm-table-cell small">{{ log.product|truncatewords:1 }}</td>
                                 <td data-label="Collected" class="text-end d-none d-lg-table-cell small">{{ log.egg_count|default:'—' }}</td>
-                                <td data-label="Damaged" class="text-end d-none d-xl-table-cell small text-danger">{% if log.egg_count is not None %}{{ log.damaged_count }}{% else %}—{% endif %}</td>
-                                <td data-label="Saleable" class="text-end d-none d-lg-table-cell small fw-bold text-success">{% if log.egg_count is not None %}{{ log.saleable_quantity }}{% else %}—{% endif %}</td>
+                                <td data-label="Damaged" class="text-end d-none d-xl-table-cell small text-danger">{% if log.egg_count is not None %}{{ log.damaged_count|default:0 }}{% else %}—{% endif %}</td>
+                                <td data-label="Saleable" class="text-end d-none d-lg-table-cell small fw-bold text-success">{% if log.egg_count is not None %}{{ log.saleable_quantity|default:0 }}{% else %}—{% endif %}</td>
+
+
                                 <td data-label="Qty" class="text-end fw-bold">{{ log.quantity }}</td>
                                 <td data-label="Unit" class="d-none d-md-table-cell small text-muted">{{ log.get_unit_display }}</td>
                                 <td class="text-center">
@@ -347,8 +349,6 @@
         </div>
     </div>
 </div>
-
-{% endblock %}
 
 {% endblock %}
 

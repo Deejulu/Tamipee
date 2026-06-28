@@ -12,8 +12,11 @@ urlpatterns = [
     # Admin: user management
     path('admin/users/', views.admin_users, name='admin_users'),
     path('admin/users/add-staff/', views.admin_add_staff, name='admin_add_staff'),
+    path('admin/users/add-customer/', views.admin_add_customer, name='admin_add_customer'),
     path('admin/users/<int:pk>/', views.admin_user_detail, name='admin_user_detail'),
     path('admin/users/<int:pk>/update-role/', views.admin_update_user_role, name='admin_update_user_role'),
+    path('admin/users/<int:pk>/delete/', views.admin_delete_user, name='admin_delete_user'),
+
 
     # Admin: orders & payments
     path('admin/orders/', views.admin_orders, name='admin_orders'),

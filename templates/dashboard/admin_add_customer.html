@@ -1,0 +1,136 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Add Customer{% endblock %}
+{% block nav_users %}active{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <h5><i class="bi bi-person-plus me-2 text-success"></i>Create Customer (No Email)</h5>
+  <div class="d-flex gap-2">
+    <a href="{% url 'dashboard:admin_users' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Back to Users
+    </a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} mb-3">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">First name</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Last name</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Phone (optional)</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <div class="text-danger small mt-1">{{ form.phone.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Address (optional)</label>
+          {{ form.address }}
+          {% if form.address.errors %}
+            <div class="text-danger small mt-1">{{ form.address.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Email (optional)</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Password</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold">Confirm password</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+          {% endif %}
+        </div>
+
+        <hr class="my-3"/>
+
+        <div class="col-12">
+          <label class="form-label fw-semibold">Security Question 1</label>
+          {{ form.security_question_1 }}
+          {% if form.security_question_1.errors %}
+            <div class="text-danger small mt-1">{{ form.security_question_1.errors }}</div>
+          {% endif %}
+
+          <label class="form-label fw-semibold mt-2">Answer 1</label>
+          {{ form.security_answer_1 }}
+          {% if form.security_answer_1.errors %}
+            <div class="text-danger small mt-1">{{ form.security_answer_1.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label fw-semibold">Security Question 2</label>
+          {{ form.security_question_2 }}
+          {% if form.security_question_2.errors %}
+            <div class="text-danger small mt-1">{{ form.security_question_2.errors }}</div>
+          {% endif %}
+
+          <label class="form-label fw-semibold mt-2">Answer 2</label>
+          {{ form.security_answer_2 }}
+          {% if form.security_answer_2.errors %}
+            <div class="text-danger small mt-1">{{ form.security_answer_2.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label fw-semibold">Security Question 3</label>
+          {{ form.security_question_3 }}
+          {% if form.security_question_3.errors %}
+            <div class="text-danger small mt-1">{{ form.security_question_3.errors }}</div>
+          {% endif %}
+
+          <label class="form-label fw-semibold mt-2">Answer 3</label>
+          {{ form.security_answer_3 }}
+          {% if form.security_answer_3.errors %}
+            <div class="text-danger small mt-1">{{ form.security_answer_3.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 d-flex gap-2 mt-3 justify-content-end">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check2-circle me-1"></i>Create Customer
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

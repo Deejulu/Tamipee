@@ -85,6 +85,7 @@
                     </div>
                 </div>
                 {% endif %}
+                {% if banner.image and banner.image.name %}
                 <div class="carousel-caption d-none d-md-block" style="background:rgba(0,0,0,.45);border-radius:.5rem;padding:1rem 1.5rem;">
                     <h5 class="fw-bold mb-1">{{ banner.title }}</h5>
                     {% if banner.subtitle %}<p class="mb-1">{{ banner.subtitle }}</p>{% endif %}
@@ -92,6 +93,7 @@
                     <a href="{{ banner.link_url }}" class="btn btn-warning btn-sm">Learn More</a>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
