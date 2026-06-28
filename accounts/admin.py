@@ -1,18 +1,54 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
 from .models import CustomUser, SecurityQuestion, UserSecurityAnswer, PasswordResetAttempt, PasswordHistory, LoginHistory
 
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'email', 'role', 'is_active', 'created_at']
+    list_display = ['username', 'email', 'role', 'is_active', 'created_at', 'delete_button']
     list_filter = ['role', 'is_active']
+    actions = ['delete_selected_users', 'deactivate_users', 'activate_users']
+    
     fieldsets = UserAdmin.fieldsets + (
         ('Farm Role & Contact', {'fields': ('role', 'phone', 'address', 'profile_picture')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Farm Role & Contact', {'fields': ('role', 'phone', 'address')}),
     )
+    
+    def delete_button(self, obj):
+        """Display a delete button/link for each user in the list view."""
+        return format_html(
+            '<a class="button" href="/admin/accounts/customuser/{}/delete/" '
+            'style="background-color: #ba2121; color: white; padding: 5px 10px; '
+            'text-decoration: none; border-radius: 3px;">Delete</a>',
+            obj.pk
+        )
+    delete_button.short_description = 'Actions'
+    delete_button.allow_tags = True
+    
+    def delete_selected_users(self, request, queryset):
+        """Custom delete action with detailed feedback."""
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(
+            request, 
+            f'Successfully deleted {count} user(s) and all associated data (security answers, login history, etc.).'
+        )
+    delete_selected_users.short_description = '🗑️ Delete selected users (permanent)'
+    
+    def deactivate_users(self, request, queryset):
+        """Deactivate users instead of deleting them."""
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'Deactivated {updated} user(s). They cannot log in but data is preserved.')
+    deactivate_users.short_description = '🔒 Deactivate selected users (preserve data)'
+    
+    def activate_users(self, request, queryset):
+        """Reactivate previously deactivated users."""
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'Activated {updated} user(s). They can now log in.')
+    activate_users.short_description = '✅ Activate selected users'
 
 
 @admin.register(SecurityQuestion)
