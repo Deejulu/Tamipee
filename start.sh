@@ -80,6 +80,65 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Rewrite DATABASE_URL to use an explicit IPv4 host so psycopg/libpq can't pick IPv6.
+echo "Resolving DATABASE_URL host to IPv4..."
+IPV4_DATABASE_URL="$(python - <<'PY'
+import os
+import socket
+import sys
+from urllib.parse import urlparse, urlunparse
+
+db_url = os.getenv("DATABASE_URL", "")
+parsed = urlparse(db_url)
+
+if not parsed.hostname:
+    print("ERROR: DATABASE_URL has no hostname", file=sys.stderr)
+    sys.exit(2)
+
+port = parsed.port or 5432
+
+try:
+    ipv4 = socket.getaddrinfo(
+        parsed.hostname,
+        port,
+        socket.AF_INET,
+        socket.SOCK_STREAM,
+    )[0][4][0]
+except socket.gaierror as exc:
+    print(f"ERROR: Unable to resolve IPv4 for {parsed.hostname}: {exc}", file=sys.stderr)
+    sys.exit(3)
+
+userinfo = ""
+if parsed.username is not None:
+    userinfo = parsed.username
+    if parsed.password is not None:
+        userinfo += f":{parsed.password}"
+    userinfo += "@"
+
+netloc = f"{userinfo}{ipv4}:{port}"
+rewritten = parsed._replace(netloc=netloc)
+
+print(urlunparse(rewritten))
+PY
+)"
+
+if [ -z "${IPV4_DATABASE_URL:-}" ]; then
+    echo "ERROR: Failed to generate IPv4 DATABASE_URL"
+    exit 1
+fi
+
+export DATABASE_URL="$IPV4_DATABASE_URL"
+
+python - <<'PY'
+import os
+from urllib.parse import urlparse
+
+parsed = urlparse(os.getenv("DATABASE_URL", ""))
+print(f"✓ IPv4 DATABASE_URL prepared")
+print(f"  Host(IP): {parsed.hostname}")
+print(f"  Port: {parsed.port or 'default'}")
+PY
+
 python -c "import os; from django.conf import settings; import pathlib; print('DJANGO_SETTINGS_MODULE from env=', os.getenv('DJANGO_SETTINGS_MODULE')); print('STATIC_ROOT=', settings.STATIC_ROOT); print('STATIC_ROOT exists before collectstatic:', pathlib.Path(settings.STATIC_ROOT).exists())" || true
 
 echo "--- start.sh filesystem diagnostics (before collectstatic) ---"
